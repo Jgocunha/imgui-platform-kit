@@ -1,8 +1,8 @@
 ﻿cmake_minimum_required(VERSION 3.15)
 
 project(imgui-platform-kit
-        DESCRIPTION "Cross-platform toolkit for Dear ImGui"
-        LANGUAGES CXX)
+    DESCRIPTION "Cross-platform toolkit for Dear ImGui"
+    LANGUAGES CXX)
 
 # Define library version
 set(IMGUI_PLATFORM_KIT_VERSION_MAJOR 1 CACHE STRING "major version" FORCE)
@@ -11,6 +11,7 @@ set(IMGUI_PLATFORM_KIT_VERSION ${IMGUI_PLATFORM_KIT_VERSION_MAJOR}.${IMGUI_PLATF
 
 # Library build type prefix
 set(IMGUI_PLATFORM_KIT_LIB_PREFIX "release")
+
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(IMGUI_PLATFORM_KIT_LIB_PREFIX "debug")
 endif()
@@ -32,6 +33,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 if(NOT DEFINED ENV{VCPKG_ROOT})
     message(FATAL_ERROR "ERROR: This project requires VCPKG.\n")
 endif()
+
 set(VCPKG_ROOT $ENV{VCPKG_ROOT})
 include(${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
 
@@ -43,7 +45,7 @@ set(OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/data")
 add_compile_definitions(OUTPUT_DIRECTORY="${OUTPUT_DIRECTORY}")
 
 # Header and source files
-set(header 
+set(header
     "include/user_interface.h"
     "include/user_interface_window.h"
     "include/user_interface_parameters.h"
@@ -51,7 +53,7 @@ set(header
     "include/log_window.h"
     "include/stb_image.h"
 )
-set(src 
+set(src
     "src/user_interface.cpp"
     "src/user_interface_window.cpp"
     "src/user_interface_parameters.cpp"
@@ -61,18 +63,22 @@ set(src
 
 # Library target definition
 add_library(${CMAKE_PROJECT_NAME} ${header} ${src})
-target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC 
+target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:${IMGUI_PLATFORM_KIT_INC_INSTALL_DIR}> 
+    $<INSTALL_INTERFACE:${IMGUI_PLATFORM_KIT_INC_INSTALL_DIR}>
 )
-# Setup imgui - win32 Directx12
+
+# Setup GLFW and OpenGL
+find_package(glfw3 REQUIRED)
+find_package(OpenGL REQUIRED)
+
+# Setup imgui
 find_package(imgui CONFIG REQUIRED)
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE imgui::imgui "d3d12.lib" "dxgi.lib" "d3dcompiler.lib")
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE imgui::imgui glfw OpenGL)
 
 # Setup implot
 find_package(implot CONFIG REQUIRED)
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE implot::implot)
-
 
 target_compile_definitions(${CMAKE_PROJECT_NAME} PUBLIC
     IMGUI_PLATFORM_KIT=1
@@ -87,16 +93,16 @@ set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES
 
 # Install the library (binaries)
 install(TARGETS ${CMAKE_PROJECT_NAME} EXPORT ${CMAKE_PROJECT_NAME}Targets
-    RUNTIME       DESTINATION ${IMGUI_PLATFORM_KIT_RUNTIME_INSTALL_DIR}
-    LIBRARY       DESTINATION ${IMGUI_PLATFORM_KIT_LIBRARY_INSTALL_DIR}
-    ARCHIVE       DESTINATION ${IMGUI_PLATFORM_KIT_ARCHIVE_INSTALL_DIR}
-    FRAMEWORK     DESTINATION ${IMGUI_PLATFORM_KIT_FRAMEWORK_INSTALL_DIR}
+    RUNTIME DESTINATION ${IMGUI_PLATFORM_KIT_RUNTIME_INSTALL_DIR}
+    LIBRARY DESTINATION ${IMGUI_PLATFORM_KIT_LIBRARY_INSTALL_DIR}
+    ARCHIVE DESTINATION ${IMGUI_PLATFORM_KIT_ARCHIVE_INSTALL_DIR}
+    FRAMEWORK DESTINATION ${IMGUI_PLATFORM_KIT_FRAMEWORK_INSTALL_DIR}
 )
 
 # Install the headers
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
-        DESTINATION ${IMGUI_PLATFORM_KIT_INC_INSTALL_DIR}/imgui-platform-kit
-        FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp")
+    DESTINATION ${IMGUI_PLATFORM_KIT_INC_INSTALL_DIR}/imgui-platform-kit
+    FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp")
 
 # Package version configuration
 include(CMakePackageConfigHelpers)
