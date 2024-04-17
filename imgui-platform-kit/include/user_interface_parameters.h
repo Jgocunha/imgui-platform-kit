@@ -10,11 +10,11 @@ namespace imgui_kit
 {
 	struct WindowParameters
 	{
-		std::wstring title;
+		std::string title;
 		int width;
 		int height;
 
-		WindowParameters(std::wstring title = L"default title", int width = -1, int height = -1);
+		WindowParameters(std::string title = "default title", int width = -1, int height = -1);
 	};
 
 	struct FontParameters

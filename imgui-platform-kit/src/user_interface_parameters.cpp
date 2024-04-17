@@ -2,7 +2,7 @@
 
 namespace imgui_kit
 {
-	WindowParameters::WindowParameters(std::wstring title, int width, int height)
+	WindowParameters::WindowParameters(std::string title, int width, int height)
 		: title(std::move(title)), width(width), height(height)
 	{
 		// if (this->width <= 0 || this->height <= 0)

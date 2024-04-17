@@ -24,12 +24,12 @@ int main(int argc, char* argv[])
 		using namespace imgui_kit::glfw_opengl;
 
 		// You can use the following parameters to customize the user interface
-		const WindowParameters windowParameters(L"Hello, World!", 1920, 1280);
-		const FontParameters fontParameters("../../resources/fonts/Lexend-Light.ttf", 22);
+		const WindowParameters windowParameters("Hello, World!", 1920, 1280);
+		const FontParameters fontParameters("../resources/fonts/Lexend-Light.ttf", 22);
 		const StyleParameters styleParameters(ImVec4(0.2f, 0.2f, 0.2f, 0.8f));
-		const IconParameters iconParameters("../../resources/icons/icon.ico");
-		const BackgroundImageParameters backgroundImageParameters("../../resources/images/logo-bg.png",
-			0.7);
+		const IconParameters iconParameters("../resources/icons/logo-bg.png");
+		const BackgroundImageParameters backgroundImageParameters("../resources/images/logo-bg.png",
+			0.3);
 
 		const UserInterfaceParameters parameters(windowParameters, 
 			fontParameters, 
