@@ -7,7 +7,7 @@ imgui-platform-kit - Cross-platform toolkit for Dear ImGui.
 
 
 ## Description
-ImGui Platform Kit is a cross-platform toolkit designed to facilitate the development of user interfaces using Dear ImGui, integrated with DirectX 12 and ImPlot for Windows. This toolkit provides a comprehensive set of tools for creating customizable graphical interfaces, logging windows, and interactive plots, making it suitable for applications that require dynamic and visually appealing UI elements.
+ImGui Platform Kit is a cross-platform toolkit designed to facilitate the development of user interfaces using Dear ImGui, integrated with GLFW, OpenGL3 and ImPlot for Linux. This toolkit provides a comprehensive set of tools for creating customizable graphical interfaces, logging windows, and interactive plots, making it suitable for applications that require dynamic and visually appealing UI elements.
 
 ## Dependencies
 - **C++20**: Compatible with modern C++ standards for optimal performance and functionality.
