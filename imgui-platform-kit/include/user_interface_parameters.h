@@ -2,7 +2,9 @@
 
 #include <algorithm>
 #include <stdexcept>
+#include <iostream>
 //#include <Windows.h>
+#include <GLFW/glfw3.h>
 
 #include "imgui.h"
 

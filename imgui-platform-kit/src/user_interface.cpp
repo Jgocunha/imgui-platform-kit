@@ -31,7 +31,10 @@ namespace imgui_kit
 		{
             glfwSetErrorCallback(glfw_error_callback);
             if (!glfwInit())
+            {
+                std::cerr << "Failed to initialize GLFW." << std::endl;
                 return;
+            }
 
                 // Decide GL+GLSL versions
             #if defined(IMGUI_IMPL_OPENGL_ES2)
@@ -63,7 +66,6 @@ namespace imgui_kit
             if (window == nullptr)
                 return;
             glfwMakeContextCurrent(window);
-            glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
             glfwSwapInterval(1); // Enable vsync
 
             loadIcon();

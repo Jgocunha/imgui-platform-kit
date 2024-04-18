@@ -5,24 +5,27 @@ namespace imgui_kit
 	WindowParameters::WindowParameters(std::string title, int width, int height)
 		: title(std::move(title)), width(width), height(height)
 	{
-		// if (this->width <= 0 || this->height <= 0)
-		// {
-		// 	const HMONITOR hMonitor = MonitorFromWindow(nullptr, MONITOR_DEFAULTTOPRIMARY);
-		// 	MONITORINFO mi = { sizeof(mi) };
-		// 	if (GetMonitorInfo(hMonitor, &mi))
-		// 	{
-		// 		this->width = mi.rcMonitor.right - mi.rcMonitor.left;
-		// 		this->height = mi.rcMonitor.bottom - mi.rcMonitor.top;
-		// 	}
-		// 	else
-		// 	{
-		// 		RECT desktop;
-		// 		const HWND hDesktop = GetDesktopWindow();
-		// 		GetWindowRect(hDesktop, &desktop);
-		// 		this->width = desktop.right;
-		// 		this->height = desktop.bottom;
-		// 	}
-		// }
+        if (this->width <= 0 || this->height <= 0) 
+		{
+			if (!glfwInit())
+				throw std::runtime_error("Failed to initialize GLFW.");
+
+            // Get the primary monitor
+            GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
+            if (primaryMonitor == nullptr)
+                throw std::runtime_error("Failed to get the primary monitor.");
+
+            // Get the current video mode of the monitor
+            const GLFWvidmode* mode = glfwGetVideoMode(primaryMonitor);
+            if (mode == nullptr)
+                throw std::runtime_error("Failed to get the video mode of the primary monitor.");
+
+            // Set width and height to the monitor's resolution if they were invalid
+            this->width = mode->width;
+            this->height = mode->height;
+
+			glfwTerminate();
+        }
 
 		if (this->width <= 0)  
 			throw std::invalid_argument("Width must be greater than 0.");

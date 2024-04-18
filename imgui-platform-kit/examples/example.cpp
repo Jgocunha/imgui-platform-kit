@@ -24,12 +24,12 @@ int main(int argc, char* argv[])
 		using namespace imgui_kit::glfw_opengl;
 
 		// You can use the following parameters to customize the user interface
-		const WindowParameters windowParameters("Hello, World!", 1920, 1280);
+		const WindowParameters windowParameters("Hello, World!");
 		const FontParameters fontParameters("../resources/fonts/Lexend-Light.ttf", 22);
 		const StyleParameters styleParameters(ImVec4(0.2f, 0.2f, 0.2f, 0.8f));
-		const IconParameters iconParameters("../resources/icons/logo-bg.png");
-		const BackgroundImageParameters backgroundImageParameters("../resources/images/logo-bg.png",
-			0.3);
+		const IconParameters iconParameters("../resources/icons/icon.png");
+		const BackgroundImageParameters backgroundImageParameters(
+			"../resources/images/logo-bg.png", 0.3);
 
 		const UserInterfaceParameters parameters(windowParameters, 
 			fontParameters, 
@@ -44,6 +44,12 @@ int main(int argc, char* argv[])
 		userInterface.addWindow<TemplateWindow>();
 		userInterface.addWindow<LogWindow>();
 		//userInterface.addWindow<SomeOtherWindow>(arg1, arg2, arg3);
+
+		LogWindow::addLog("[INFO] User interface initialized.");
+		LogWindow::addLog("[DEBUG] Debug message.");
+		LogWindow::addLog("[WARNING] Warning message.");
+		LogWindow::addLog("[ERROR] Error message.");
+		LogWindow::addLog("[FATAL] Fatal error message.");
 
 		userInterface.initialize();
 		while(!userInterface.isShutdownRequested())
