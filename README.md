@@ -14,7 +14,7 @@ ImGui Platform Kit is a cross-platform toolkit designed to facilitate the develo
 - **Dear ImGui**: Used for the base GUI components.
 - **ImPlot**: Provides plotting capabilities within ImGui interfaces.
 - **Open GL**: API for rendering 2D and 3D vector graphics.
-- **GLfW**: Multi-platform library for OpenGL development on the desktop.
+- **GLFW**: Multi-platform library for OpenGL development on the desktop.
 - **STB Image**: For image loading and texture handling.
 - **CMake 3.15 or higher**: For building and managing the project configurations.
 - **VCPKG**: To manage C++ libraries on Windows, ensuring easy integration of ImGui and ImPlot.
