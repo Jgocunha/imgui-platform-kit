@@ -113,22 +113,22 @@ struct FrameContext
 };
 
 // Data
-static int constexpr NUM_FRAMES_IN_FLIGHT = 3;
-static FrameContext g_frameContext[NUM_FRAMES_IN_FLIGHT] = {};
-static UINT g_frameIndex = 0;
-static int constexpr NUM_BACK_BUFFERS = 3;
-static ID3D12Device* g_pd3dDevice = nullptr;
-static ID3D12DescriptorHeap* g_pd3dRtvDescHeap = nullptr;
-static ID3D12DescriptorHeap* g_pd3dSrvDescHeap = nullptr;
-static ID3D12CommandQueue* g_pd3dCommandQueue = nullptr;
-static ID3D12GraphicsCommandList* g_pd3dCommandList = nullptr;
-static ID3D12Fence* g_fence = nullptr;
-static HANDLE g_fenceEvent = nullptr;
-static UINT64 g_fenceLastSignaledValue = 0;
-static IDXGISwapChain3* g_pSwapChain = nullptr;
-static HANDLE g_hSwapChainWaitableObject = nullptr;
-static ID3D12Resource* g_mainRenderTargetResource[NUM_BACK_BUFFERS] = {};
-static D3D12_CPU_DESCRIPTOR_HANDLE  g_mainRenderTargetDescriptor[NUM_BACK_BUFFERS] = {};
+inline int constexpr NUM_FRAMES_IN_FLIGHT = 3;
+inline FrameContext g_frameContext[NUM_FRAMES_IN_FLIGHT] = {};
+inline UINT g_frameIndex = 0;
+inline int constexpr NUM_BACK_BUFFERS = 3;
+inline ID3D12Device* g_pd3dDevice = nullptr;
+inline ID3D12DescriptorHeap* g_pd3dRtvDescHeap = nullptr;
+inline ID3D12DescriptorHeap* g_pd3dSrvDescHeap = nullptr;
+inline ID3D12CommandQueue* g_pd3dCommandQueue = nullptr;
+inline ID3D12GraphicsCommandList* g_pd3dCommandList = nullptr;
+inline ID3D12Fence* g_fence = nullptr;
+inline HANDLE g_fenceEvent = nullptr;
+inline UINT64 g_fenceLastSignaledValue = 0;
+inline IDXGISwapChain3* g_pSwapChain = nullptr;
+inline HANDLE g_hSwapChainWaitableObject = nullptr;
+inline ID3D12Resource* g_mainRenderTargetResource[NUM_BACK_BUFFERS] = {};
+inline D3D12_CPU_DESCRIPTOR_HANDLE  g_mainRenderTargetDescriptor[NUM_BACK_BUFFERS] = {};
 
 // Forward declarations of helper functions
 bool CreateDeviceD3D(HWND hWnd);
