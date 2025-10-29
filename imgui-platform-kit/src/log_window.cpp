@@ -8,6 +8,47 @@ namespace imgui_kit
 		clean();
 	}
 
+	void LogWindow::renderContent()
+	{
+		if (ImGui::BeginPopup("Options"))
+		{
+			ImGui::Checkbox("Auto-scroll", &autoScroll);
+			ImGui::EndPopup();
+		}
+
+		if (ImGui::Button("Options"))
+			ImGui::OpenPopup("Options");
+		ImGui::SameLine();
+		if (ImGui::Button("Clear"))
+			clean();
+		ImGui::SameLine();
+		if (ImGui::Button("Copy"))
+			ImGui::LogToClipboard();
+		ImGui::SameLine();
+		filter.Draw("Filter", -100.0f);
+
+		ImGui::Separator();
+		if (ImGui::BeginChild("scrolling", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar))
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+			for (const auto& [message, color] : logs)
+			{
+				if (filter.PassFilter(message.c_str()))
+				{
+					ImGui::PushStyleColor(ImGuiCol_Text, color);
+					ImGui::TextEx(message.c_str());
+					ImGui::PopStyleColor();
+				}
+			}
+			ImGui::PopStyleVar();
+
+			if (autoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
+				ImGui::SetScrollHereY(1.0f);
+		}
+		ImGui::EndChild();
+	}
+
+
 	void LogWindow::addLog(const ImVec4& color, const char* fmt, ...)
 	{
    		va_list args;
@@ -26,44 +67,8 @@ namespace imgui_kit
             ImGui::End();
             return;
         }
-
-        if (ImGui::BeginPopup("Options")) 
-        {
-            ImGui::Checkbox("Auto-scroll", &autoScroll);
-            ImGui::EndPopup();
-        }
-
-        if (ImGui::Button("Options")) 
-            ImGui::OpenPopup("Options");
-        ImGui::SameLine();
-        if (ImGui::Button("Clear"))
-            clean();
-        ImGui::SameLine();
-        if (ImGui::Button("Copy"))
-            ImGui::LogToClipboard();
-        ImGui::SameLine();
-        filter.Draw("Filter", -100.0f);
-
-        ImGui::Separator();
-        if (ImGui::BeginChild("scrolling", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar)) 
-        {
-            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-            for (const auto& [message, color] : logs)
-            {
-                if (filter.PassFilter(message.c_str())) 
-                {
-                    ImGui::PushStyleColor(ImGuiCol_Text, color);
-                    ImGui::TextEx(message.c_str());
-                    ImGui::PopStyleColor();
-                }
-            }
-            ImGui::PopStyleVar();
-
-            if (autoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY()) 
-                ImGui::SetScrollHereY(1.0f);
-        }
-        ImGui::EndChild();
-        ImGui::End();
+       renderContent();
+		ImGui::End();
 	}
 
 } 
