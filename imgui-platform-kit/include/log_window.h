@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <string>
-#include <stdarg.h>   
+#include <cstdarg>
 #include "imgui.h"
 #include "colour_palette.h"
 #include "user_interface_window.h"
