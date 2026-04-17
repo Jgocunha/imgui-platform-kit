@@ -68,10 +68,15 @@ namespace imgui_kit
 
 			// Setup Platform/Renderer backends
 			ImGui_ImplWin32_Init(windowHandle);
-			ImGui_ImplDX12_Init(g_pd3dDevice, NUM_FRAMES_IN_FLIGHT,
-				DXGI_FORMAT_R8G8B8A8_UNORM, g_pd3dSrvDescHeap,
-				g_pd3dSrvDescHeap->GetCPUDescriptorHandleForHeapStart(),
-				g_pd3dSrvDescHeap->GetGPUDescriptorHandleForHeapStart());
+			ImGui_ImplDX12_InitInfo dx12InitInfo;
+			dx12InitInfo.Device = g_pd3dDevice;
+			dx12InitInfo.CommandQueue = g_pd3dCommandQueue;
+			dx12InitInfo.NumFramesInFlight = NUM_FRAMES_IN_FLIGHT;
+			dx12InitInfo.RTVFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+			dx12InitInfo.SrvDescriptorHeap = g_pd3dSrvDescHeap;
+			dx12InitInfo.SrvDescriptorAllocFn = ImGui_ImplDX12_SrvDescAlloc;
+			dx12InitInfo.SrvDescriptorFreeFn = ImGui_ImplDX12_SrvDescFree;
+			ImGui_ImplDX12_Init(&dx12InitInfo);
 
             loadIcon();
 			loadFont();
@@ -254,12 +259,11 @@ namespace imgui_kit
 			// Get CPU/GPU handles for the shader resource view
 			// Normally your engine will have some sort of allocator for these - here we assume that there's an SRV descriptor heap in
 			// g_pd3dSrvDescHeap with at least two descriptors allocated, and descriptor 1 is unused
-			const UINT handle_increment = g_pd3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-			constexpr int descriptor_index = 1; // The descriptor table index to use (not normally a hard-coded constant, but in this case we'll assume we have slot 1 reserved for us)
+			constexpr int descriptor_index = 0; // slot 0 is reserved for background image
 			backgroundImageTexture.srv_cpu_handle = g_pd3dSrvDescHeap->GetCPUDescriptorHandleForHeapStart();
-			backgroundImageTexture.srv_cpu_handle.ptr += (handle_increment * descriptor_index);
+			backgroundImageTexture.srv_cpu_handle.ptr += (g_SrvDescriptorSize * descriptor_index);
 			backgroundImageTexture.srv_gpu_handle = g_pd3dSrvDescHeap->GetGPUDescriptorHandleForHeapStart();
-			backgroundImageTexture.srv_gpu_handle.ptr += (handle_increment * descriptor_index);
+			backgroundImageTexture.srv_gpu_handle.ptr += (g_SrvDescriptorSize * descriptor_index);
 			// Load the texture from a file
 			const bool ret = LoadTextureFromFile(parameters.backgroundImageParameters.path.c_str(),
 			 g_pd3dDevice, 
@@ -424,10 +428,15 @@ bool CreateDeviceD3D(HWND hWnd)
     {
         D3D12_DESCRIPTOR_HEAP_DESC desc = {};
         desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-        desc.NumDescriptors = 2; // <-- Set this value to 2 (the first descriptor is used for the built-in font texture, the second for our new texture)
+        desc.NumDescriptors = SRV_HEAP_SIZE;
         desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
         if (g_pd3dDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&g_pd3dSrvDescHeap)) != S_OK)
             return false;
+
+        g_SrvDescriptorSize = g_pd3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        g_SrvFreeSlots.clear();
+        for (UINT i = 1; i < SRV_HEAP_SIZE; i++) // slot 0 reserved for background image
+            g_SrvFreeSlots.push_back(i);
     }
 
     {
@@ -438,13 +447,6 @@ bool CreateDeviceD3D(HWND hWnd)
         if (g_pd3dDevice->CreateCommandQueue(&desc, IID_PPV_ARGS(&g_pd3dCommandQueue)) != S_OK)
             return false;
     }
-
-    //D3D12_DESCRIPTOR_HEAP_DESC desc = {};
-    //desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-    //desc.NumDescriptors = 2; // <-- Set this value to 2 (the first descriptor is used for the built-in font texture, the second for our new texture)
-    //desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-    //if (g_pd3dDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&g_pd3dSrvDescHeap)) != S_OK)
-    //    return false;
 
     for (UINT i = 0; i < NUM_FRAMES_IN_FLIGHT; i++)
         if (g_pd3dDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&g_frameContext[i].CommandAllocator)) != S_OK)
@@ -480,9 +482,25 @@ bool CreateDeviceD3D(HWND hWnd)
     return true;
 }
 
+void ImGui_ImplDX12_SrvDescAlloc(ImGui_ImplDX12_InitInfo* /*info*/, D3D12_CPU_DESCRIPTOR_HANDLE* out_cpu, D3D12_GPU_DESCRIPTOR_HANDLE* out_gpu)
+{
+    IM_ASSERT(!g_SrvFreeSlots.empty() && "SRV descriptor heap is full!");
+    UINT slot = g_SrvFreeSlots.back();
+    g_SrvFreeSlots.pop_back();
+    out_cpu->ptr = g_pd3dSrvDescHeap->GetCPUDescriptorHandleForHeapStart().ptr + slot * g_SrvDescriptorSize;
+    out_gpu->ptr = g_pd3dSrvDescHeap->GetGPUDescriptorHandleForHeapStart().ptr + slot * g_SrvDescriptorSize;
+}
+
+void ImGui_ImplDX12_SrvDescFree(ImGui_ImplDX12_InitInfo* /*info*/, D3D12_CPU_DESCRIPTOR_HANDLE cpu, D3D12_GPU_DESCRIPTOR_HANDLE /*gpu*/)
+{
+    UINT slot = static_cast<UINT>((cpu.ptr - g_pd3dSrvDescHeap->GetCPUDescriptorHandleForHeapStart().ptr) / g_SrvDescriptorSize);
+    g_SrvFreeSlots.push_back(slot);
+}
+
 void CleanupDeviceD3D()
 {
     CleanupRenderTarget();
+    g_SrvFreeSlots.clear();
     if (g_pSwapChain) { g_pSwapChain->SetFullscreenState(false, nullptr); g_pSwapChain->Release(); g_pSwapChain = nullptr; }
     if (g_hSwapChainWaitableObject != nullptr) { CloseHandle(g_hSwapChainWaitableObject); }
     for (UINT i = 0; i < NUM_FRAMES_IN_FLIGHT; i++)
