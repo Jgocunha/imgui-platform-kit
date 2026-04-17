@@ -117,6 +117,7 @@ inline int constexpr NUM_FRAMES_IN_FLIGHT = 3;
 inline FrameContext g_frameContext[NUM_FRAMES_IN_FLIGHT] = {};
 inline UINT g_frameIndex = 0;
 inline int constexpr NUM_BACK_BUFFERS = 3;
+inline int constexpr SRV_HEAP_SIZE = 64;
 inline ID3D12Device* g_pd3dDevice = nullptr;
 inline ID3D12DescriptorHeap* g_pd3dRtvDescHeap = nullptr;
 inline ID3D12DescriptorHeap* g_pd3dSrvDescHeap = nullptr;
@@ -129,6 +130,8 @@ inline IDXGISwapChain3* g_pSwapChain = nullptr;
 inline HANDLE g_hSwapChainWaitableObject = nullptr;
 inline ID3D12Resource* g_mainRenderTargetResource[NUM_BACK_BUFFERS] = {};
 inline D3D12_CPU_DESCRIPTOR_HANDLE  g_mainRenderTargetDescriptor[NUM_BACK_BUFFERS] = {};
+inline UINT g_SrvDescriptorSize = 0;
+inline std::vector<UINT> g_SrvFreeSlots; // slot 0 reserved for background image
 
 // Forward declarations of helper functions
 bool CreateDeviceD3D(HWND hWnd);
@@ -141,5 +144,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 bool LoadTextureFromFile(const char* filename, ID3D12Device* d3d_device, D3D12_CPU_DESCRIPTOR_HANDLE srv_cpu_handle, ID3D12Resource** out_tex_resource, int* out_width, int* out_height);
 std::wstring StringToWString(const std::string& str);
 float GetDpiScale(HWND hWnd);
+void ImGui_ImplDX12_SrvDescAlloc(ImGui_ImplDX12_InitInfo* info, D3D12_CPU_DESCRIPTOR_HANDLE* out_cpu, D3D12_GPU_DESCRIPTOR_HANDLE* out_gpu);
+void ImGui_ImplDX12_SrvDescFree(ImGui_ImplDX12_InitInfo* info, D3D12_CPU_DESCRIPTOR_HANDLE cpu, D3D12_GPU_DESCRIPTOR_HANDLE gpu);
 
 #endif
