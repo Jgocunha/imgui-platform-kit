@@ -5,6 +5,13 @@
 imgui-platform-kit - Cross-platform toolkit for Dear ImGui.
 ===============================================
 
+[![Windows Build](https://github.com/Jgocunha/imgui-platform-kit/actions/workflows/windows.yml/badge.svg)](https://github.com/Jgocunha/imgui-platform-kit/actions/workflows/windows.yml)
+[![Linux Build](https://github.com/Jgocunha/imgui-platform-kit/actions/workflows/linux.yml/badge.svg)](https://github.com/Jgocunha/imgui-platform-kit/actions/workflows/linux.yml)
+[![macOS Build](https://github.com/Jgocunha/imgui-platform-kit/actions/workflows/macos.yml/badge.svg)](https://github.com/Jgocunha/imgui-platform-kit/actions/workflows/macos.yml)
+[![Coverage](https://github.com/Jgocunha/imgui-platform-kit/actions/workflows/coverage.yml/badge.svg)](https://github.com/Jgocunha/imgui-platform-kit/actions/workflows/coverage.yml)
+[![codecov](https://codecov.io/gh/Jgocunha/imgui-platform-kit/branch/main/graph/badge.svg)](https://codecov.io/gh/Jgocunha/imgui-platform-kit)
+[![Wiki](https://img.shields.io/badge/docs-wiki-blue)](https://github.com/Jgocunha/imgui-platform-kit/wiki)
+
 
 ## Description
 **ImGui Platform Kit** is a cross-platform toolkit designed to facilitate the development of user interfaces using **Dear ImGui**, **ImPlot**, and **imgui-node-editor** integrated with DirectX 12 for Windows, or integrated with GLFW and OpenGL3 for Linux and macOS. This toolkit provides a comprehensive set of tools for creating customizable graphical interfaces, logging windows, and interactive plots, making it suitable for applications that require dynamic and visually appealing UI elements.
