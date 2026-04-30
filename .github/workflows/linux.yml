@@ -48,13 +48,22 @@ jobs:
 
       - name: Install vcpkg dependencies
         run: |
-          "$VCPKG_ROOT/vcpkg" install \
-            "imgui[docking-experimental,core,opengl3-binding,glfw-binding]:x64-linux" \
-            "implot:x64-linux" \
-            "imgui-node-editor:x64-linux"
+          for attempt in 1 2 3; do
+            "$VCPKG_ROOT/vcpkg" install \
+              "imgui[docking-experimental,core,opengl3-binding,glfw-binding]:x64-linux" \
+              "implot:x64-linux" \
+              "imgui-node-editor:x64-linux" && break
+            echo "Attempt $attempt failed, retrying in 15s..."
+            sleep 15
+          done
 
       - name: Install Catch2
-        run: $VCPKG_ROOT/vcpkg install catch2:x64-linux
+        run: |
+          for attempt in 1 2 3; do
+            $VCPKG_ROOT/vcpkg install catch2:x64-linux && break
+            echo "Attempt $attempt failed, retrying in 15s..."
+            sleep 15
+          done
 
       - name: Configure CMake
         working-directory: imgui-platform-kit
