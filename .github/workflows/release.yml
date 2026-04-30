@@ -56,7 +56,8 @@ jobs:
           cmake -S . -B build/release `
             -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" `
             -DVCPKG_TARGET_TRIPLET=x64-windows `
-            -DCMAKE_BUILD_TYPE=Release
+            -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/install"
 
       - name: Build
         working-directory: imgui-platform-kit
@@ -68,7 +69,7 @@ jobs:
 
       - name: Install
         working-directory: imgui-platform-kit
-        run: cmake --install build/release --prefix ..\install
+        run: cmake --install build/release --config Release
 
       - name: Set version
         run: |
@@ -148,7 +149,8 @@ jobs:
           cmake -S . -B build/release \
             -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" \
             -DVCPKG_TARGET_TRIPLET=x64-linux \
-            -DCMAKE_BUILD_TYPE=Release
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/install"
 
       - name: Build
         working-directory: imgui-platform-kit
@@ -160,7 +162,7 @@ jobs:
 
       - name: Install
         working-directory: imgui-platform-kit
-        run: cmake --install build/release --prefix ../install
+        run: cmake --install build/release
 
       - name: Package
         run: |
@@ -233,7 +235,8 @@ jobs:
           cmake -S . -B build/release \
             -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" \
             -DVCPKG_TARGET_TRIPLET="$VCPKG_TRIPLET" \
-            -DCMAKE_BUILD_TYPE=Release
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/install"
 
       - name: Build
         working-directory: imgui-platform-kit
@@ -245,7 +248,7 @@ jobs:
 
       - name: Install
         working-directory: imgui-platform-kit
-        run: cmake --install build/release --prefix ../install
+        run: cmake --install build/release
 
       - name: Package
         run: |
