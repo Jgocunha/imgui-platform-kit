@@ -47,6 +47,9 @@ jobs:
             "implot:$VCPKG_TRIPLET" \
             "imgui-node-editor:$VCPKG_TRIPLET"
 
+      - name: Install Catch2
+        run: $VCPKG_ROOT/vcpkg install catch2:$VCPKG_TRIPLET
+
       - name: Configure CMake
         working-directory: imgui-platform-kit
         run: |
@@ -54,9 +57,6 @@ jobs:
             -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" \
             -DVCPKG_TARGET_TRIPLET="$VCPKG_TRIPLET" \
             -DCMAKE_BUILD_TYPE=Release
-
-      - name: Install Catch2
-        run: $VCPKG_ROOT/vcpkg install catch2:$VCPKG_TRIPLET
 
       - name: Build
         working-directory: imgui-platform-kit
