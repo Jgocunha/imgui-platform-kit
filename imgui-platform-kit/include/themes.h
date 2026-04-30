@@ -3,6 +3,7 @@
 #include "imgui.h"
 #include <functional>
 #include <string>
+#include <unordered_map>
 
 namespace imgui_kit
 {

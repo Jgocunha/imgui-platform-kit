@@ -13,6 +13,7 @@ namespace fs = std::filesystem;
 
 TEST_CASE("WindowParameters: explicit constructor stores values", "[parameters][window]")
 {
+    fs::remove(defaultWindowParametersFilename);
     const WindowParameters p("My App", 1280, 720, 50, 100);
     CHECK(p.title == "My App");
     CHECK(p.width == 1280);
@@ -23,12 +24,14 @@ TEST_CASE("WindowParameters: explicit constructor stores values", "[parameters][
 
 TEST_CASE("WindowParameters: default title is 'default title'", "[parameters][window]")
 {
+    fs::remove(defaultWindowParametersFilename);
     const WindowParameters p("default title", 800, 600);
     CHECK(p.title == "default title");
 }
 
 TEST_CASE("WindowParameters: default startPos is (0, 0)", "[parameters][window]")
 {
+    fs::remove(defaultWindowParametersFilename);
     const WindowParameters p("App", 800, 600);
     CHECK(p.startPosX == 0);
     CHECK(p.startPosY == 0);

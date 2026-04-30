@@ -176,8 +176,11 @@ install(EXPORT ${CMAKE_PROJECT_NAME}Targets DESTINATION ${IMGUI_PLATFORM_KIT_CMA
     FILE ${CMAKE_PROJECT_NAME}-config.cmake
 )
 
-enable_testing()
-add_subdirectory(tests)
+option(IMGUI_PLATFORM_KIT_BUILD_TESTS "Build tests" ON)
+if(IMGUI_PLATFORM_KIT_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
 
 # Example executable
 set(EXE_PROJECT_EXAMPLE ${CMAKE_PROJECT_NAME}-example)

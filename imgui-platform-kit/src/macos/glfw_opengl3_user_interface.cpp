@@ -49,10 +49,13 @@ namespace imgui_kit
         window = glfwCreateWindow(parameters.windowParameters.width,
         parameters.windowParameters.height,
         parameters.windowParameters.title.c_str(), nullptr, nullptr);
+        if (window == nullptr)
+        {
+            glfwTerminate();
+            return;
+        }
         glfwSetWindowPos(window, parameters.windowParameters.startPosX,
             parameters.windowParameters.startPosY);
-        if (window == nullptr)
-            return;
         glfwMakeContextCurrent(window);
         glfwSwapInterval(1); // Enable vsync
 
@@ -210,6 +213,11 @@ namespace imgui_kit
 
     void UserInterface::renderBackgroundImage() const
     {
+        if (backgroundImageTexture.texture == 0 ||
+            backgroundImageTexture.parameters.width <= 0 ||
+            backgroundImageTexture.parameters.height <= 0)
+            return;
+
         ImGuiViewport* viewport = ImGui::GetMainViewport();
 
         const ImVec2 windowSize = viewport->Size;

@@ -1,11 +1,14 @@
 #pragma once
 
 #include <algorithm>
+#include <cstdint>
 #include <stdexcept>
 #include <iostream>
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <utility>
+#include <vector>
 
 #if defined(_WIN32)
 #include <Windows.h>

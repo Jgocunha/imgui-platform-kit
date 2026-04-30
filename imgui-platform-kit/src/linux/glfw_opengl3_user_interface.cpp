@@ -64,13 +64,16 @@ namespace imgui_kit
         glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
 
         // Create window with graphics context
-        window = glfwCreateWindow(parameters.windowParameters.width, 
-        parameters.windowParameters.height, 
+        window = glfwCreateWindow(parameters.windowParameters.width,
+        parameters.windowParameters.height,
         parameters.windowParameters.title.c_str(), nullptr, nullptr);
-        glfwSetWindowPos(window, parameters.windowParameters.startPosX, 
-            parameters.windowParameters.startPosY);
         if (window == nullptr)
+        {
+            glfwTerminate();
             return;
+        }
+        glfwSetWindowPos(window, parameters.windowParameters.startPosX,
+            parameters.windowParameters.startPosY);
         glfwMakeContextCurrent(window);
         glfwSwapInterval(1); // Enable vsync
 
@@ -245,6 +248,11 @@ namespace imgui_kit
 
     void UserInterface::renderBackgroundImage() const
     {
+        if (backgroundImageTexture.texture == 0 ||
+            backgroundImageTexture.parameters.width <= 0 ||
+            backgroundImageTexture.parameters.height <= 0)
+            return;
+
         // Obtain the main viewport
         ImGuiViewport* viewport = ImGui::GetMainViewport();
 
