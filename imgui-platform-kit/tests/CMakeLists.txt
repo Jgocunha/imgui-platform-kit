@@ -17,6 +17,11 @@ target_link_libraries(imgui-platform-kit-tests PRIVATE
     imgui::imgui
 )
 
+if(IMGUI_PLATFORM_KIT_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(imgui-platform-kit-tests PRIVATE --coverage)
+    target_link_options(imgui-platform-kit-tests PRIVATE --coverage)
+endif()
+
 include(CTest)
 include(Catch)
 catch_discover_tests(imgui-platform-kit-tests)
