@@ -257,7 +257,8 @@ TEST_CASE("ImageFitType: KEEP_ASPECT_RATIO is the zero value", "[parameters][bac
 
 TEST_CASE("UserInterfaceParameters: default constructor is valid", "[parameters][ui]")
 {
-    REQUIRE_NOTHROW(UserInterfaceParameters{});
+    // Explicit dimensions avoid the GLFW monitor-query path, which fails on headless CI runners.
+    REQUIRE_NOTHROW(UserInterfaceParameters{WindowParameters("App", 800, 600)});
 }
 
 TEST_CASE("UserInterfaceParameters: explicit constructor stores all sub-parameters", "[parameters][ui]")
