@@ -7,23 +7,28 @@ imgui-platform-kit - Cross-platform toolkit for Dear ImGui.
 
 
 ## Description
-**ImGui Platform Kit** is a cross-platform toolkit designed to facilitate the development of user interfaces using **Dear ImGui**, **ImPlot**, and **imgui-node-editor** integrated with DirectX 12 for Windows or integrated with GLFW, OpenGL3 for Linux. This toolkit provides a comprehensive set of tools for creating customizable graphical interfaces, logging windows, and interactive plots, making it suitable for applications that require dynamic and visually appealing UI elements.
+**ImGui Platform Kit** is a cross-platform toolkit designed to facilitate the development of user interfaces using **Dear ImGui**, **ImPlot**, and **imgui-node-editor** integrated with DirectX 12 for Windows, or integrated with GLFW and OpenGL3 for Linux and macOS. This toolkit provides a comprehensive set of tools for creating customizable graphical interfaces, logging windows, and interactive plots, making it suitable for applications that require dynamic and visually appealing UI elements.
 
 ## Common dependencies
 - **C++20**: Compatible with modern C++ standards for optimal performance and functionality.
 - **CMake 3.15 or higher**: For building and managing the project configurations.
 - **VCPKG**: To manage C++ libraries on Windows, ensuring easy integration of ImGui and ImPlot.
-- **Dear ImGui**: Used for the base GUI components (installed automatically when running ```build.bat``` on Windows or ```build.sh``` on Linux).
-- **ImPlot**: Provides plotting capabilities within ImGui interfaces (installed automatically when running ```build.bat``` on Windows or ```build.sh``` on Linux).
-- **imgui-node-editor**: Provides the capability of creating node-based graphs (installed automatically when running ```build.bat``` on Windows or ```build.sh``` on Linux).
+- **Dear ImGui**: Used for the base GUI components (installed automatically by the build scripts).
+- **ImPlot**: Provides plotting capabilities within ImGui interfaces (installed automatically by the build scripts).
+- **imgui-node-editor**: Provides the capability of creating node-based graphs (installed automatically by the build scripts).
 - **STB Image**: For image loading and texture handling (already included in project).
 
 ## Windows specific dependencies
 - **DirectX 12**: Required for rendering on Windows platforms.
-  
+
 ## Linux specific dependencies
-- **Open GL**: API for rendering 2D and 3D vector graphics.
+- **OpenGL**: API for rendering 2D and 3D vector graphics.
 - **GLFW**: Multi-platform library for OpenGL development on the desktop.
+
+## macOS specific dependencies
+- **OpenGL**: API for rendering 2D and 3D vector graphics. Note: OpenGL is deprecated on macOS since 10.14 but remains functional through current macOS releases.
+- **GLFW**: Multi-platform library for OpenGL development on the desktop.
+- **Xcode Command Line Tools**: Required for compilation (`xcode-select --install`).
 
 ## Functionalities
 - **Dynamic Window Management**: Create and manipulate multiple window types with various properties.
@@ -37,20 +42,35 @@ imgui-platform-kit - Cross-platform toolkit for Dear ImGui.
 ## Getting started
 
 1. Clone this repository to your local machine using Git.
-2. Run the build.bat file. This will install all the necessary dependencies and build the project. Make sure you have VCPKG installed and the VCPKG_ROOT environment variable defined.
-3. You can run the example executable to see the toolkit in action.
+2. Run the appropriate build script for your platform. Make sure you have VCPKG installed and the `VCPKG_ROOT` environment variable defined.
+3. Run the example executable to see the toolkit in action.
 
 ## Build and installing
 
-Included in the project are ```build.bat```, ```build.sh``` and ```install.bat```, ```install.sh``` scripts to simplify the process of building and installing the ImGui Platform Kit:
-- ```build.bat```, ```build.sh```: Compiles the project using predefined CMake commands.
-- ```install.bat```, ```install.sh```: Installs the project to the specified location using CMake.
+Included in the project are platform-specific build and install scripts to simplify the process:
 
-**Note:**
-In a Linux machine you might have to:
-1. Create a build directory inside the project folder ```mkdir build```;
-2. Set ```VCPKG_ROOT``` directory as an environment variable ```export VCPKG_ROOT=/opt/vcpkg``` (see instructions below under Installing VCPKG).
-Before running the ```build.sh```.
+| Platform | Build | Install |
+|---|---|---|
+| Windows | `build.bat` | `install.bat` |
+| Linux | `build.sh` | `install.sh` |
+| macOS | `build_macos.sh` | — |
+
+- **Build scripts**: Compile the project and install vcpkg dependencies automatically.
+- **Install scripts**: Install the built library to a specified location using CMake.
+
+**Linux note:**
+You might have to:
+1. Create a build directory inside the project folder: `mkdir build`
+2. Set `VCPKG_ROOT` as an environment variable: `export VCPKG_ROOT=/opt/vcpkg` (see *Installing vcpkg* below).
+
+Before running `build.sh`.
+
+**macOS note:**
+The `build_macos.sh` script auto-detects your architecture and selects the correct vcpkg triplet (`arm64-osx` for Apple Silicon, `x64-osx` for Intel). Ensure `VCPKG_ROOT` is set before running:
+```bash
+export VCPKG_ROOT="$HOME/vcpkg"
+./build_macos.sh
+```
 
 ### Integration with Your Project
 After running the ```install.bat```, ```install.sh``` script, the ImGui Platform Kit will be installed on your system. You can then integrate it with your own projects by modifying your CMake configuration to link against the installed ImGui Platform Kit library.
@@ -110,22 +130,24 @@ This approach allows for easy extension and integration of new custom windows in
 
 ### Installing CMake
 
+**Linux (Ubuntu/Debian):**
 ```bash
 sudo apt update
-sudo apt install cmake
+sudo apt install cmake build-essential
+```
 
-sudo apt install build-essential
+**macOS:**
+```bash
+brew install cmake
 ```
 
 ### Installing vcpkg
 
-https://lindevs.com/install-vcpkg-on-ubuntu
+**Linux (Ubuntu/Debian):**
 
 ```bash
 sudo apt update
-sudo apt install -y zip unzip
-
-sudo apt install -y build-essential pkg-config
+sudo apt install -y zip unzip build-essential pkg-config
 wget -qO vcpkg.tar.gz https://github.com/microsoft/vcpkg/archive/master.tar.gz
 
 sudo mkdir /opt/vcpkg
@@ -137,54 +159,50 @@ sudo ln -s /opt/vcpkg/vcpkg /usr/local/bin/vcpkg
 vcpkg version
 ```
 
-Add ```VCPKG_ROOT``` to your environment variables.
-To set variable only for current shell:
+**macOS:**
 ```bash
-VCPKG_ROOT=/opt/vcpkg
+git clone https://github.com/microsoft/vcpkg.git "$HOME/vcpkg"
+"$HOME/vcpkg/bootstrap-vcpkg.sh" -disableMetrics
 ```
-To set it for current shell and all processes started from current shell:
-```bash
-export VCPKG_ROOT="/opt/vcpkg" # shorter, less portable version
-```
-To set it permanently for all future bash sessions add such line to your ```.bashrc``` file in your ```$HOME``` directory.
 
-To set it permanently, and system wide (all users, all processes) add set variable in /etc/environment:
-```bash
-sudo -H gedit /etc/environment
-```
-This file only accepts variable assignments like:
-```bash
-VCPKG_ROOT=/opt/vcpkg
-```
-Do not use the export keyword here.
+Add `VCPKG_ROOT` to your environment variables.
 
-Use source ```~/.bashrc``` in your terminal for the changes to take place immediately.
+To set it for the current shell session:
+```bash
+export VCPKG_ROOT="/opt/vcpkg"      # Linux
+export VCPKG_ROOT="$HOME/vcpkg"     # macOS
+```
+To set it permanently, add the export line to your `~/.bashrc` (Linux) or `~/.zshrc` (macOS) and run `source ~/.bashrc` / `source ~/.zshrc`.
 
 ### Installing OpenGL
 
-https://www.khronos.org/opengl/wiki/Getting_Started#Downloading_OpenGL
+**Linux:**
 
-OpenGl should be installed by default if you have your graphics drivers installed.
-
-Checking the version
-
+OpenGL should be installed by default if you have your graphics drivers installed. To verify:
 ```bash
 sudo apt-get install mesa-utils
 glxinfo | grep "OpenGL version"
 ```
 
+**macOS:**
+
+OpenGL is included with macOS (no installation required). Note: Apple deprecated OpenGL in macOS 10.14 but it remains fully functional on current releases.
+
 ### Installing GLFW
 
-https://shnoh171.github.io/gpu%20and%20gpu%20programming/2019/08/26/installing-glfw-on-ubuntu.html
+GLFW is installed automatically by the build scripts via vcpkg. If you need it separately:
 
+**Linux:**
 ```bash
-sudo apt-get install libglfw3
-sudo apt-get install libglfw3-dev
+sudo apt-get install libglfw3 libglfw3-dev
 ```
 
-### Using g++ 13 on Ubuntu 22.04 for stuff like std::ranges
+**macOS:**
+```bash
+brew install glfw
+```
 
-https://lindevs.com/install-g-on-ubuntu/
+### Using g++ 13 on Ubuntu 22.04 for std::ranges support
 
 ```bash
 sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
