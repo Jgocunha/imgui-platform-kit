@@ -1,0 +1,287 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    name: Build and package (Windows)
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up vcpkg
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git "$env:USERPROFILE\vcpkg"
+          & "$env:USERPROFILE\vcpkg\bootstrap-vcpkg.bat" -disableMetrics
+          echo "VCPKG_ROOT=$env:USERPROFILE\vcpkg" >> $env:GITHUB_ENV
+
+      - name: Cache vcpkg packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.VCPKG_ROOT }}/installed
+            ${{ env.VCPKG_ROOT }}/packages
+          key: vcpkg-release-windows-x64-${{ hashFiles('**/CMakeLists.txt') }}
+          restore-keys: |
+            vcpkg-release-windows-x64-
+
+      - name: Install vcpkg dependencies
+        run: |
+          for ($i = 1; $i -le 3; $i++) {
+            & "$env:VCPKG_ROOT\vcpkg" install `
+              "imgui[docking-experimental,core,dx12-binding,win32-binding]:x64-windows" `
+              "implot:x64-windows" `
+              "imgui-node-editor:x64-windows"
+            if ($?) { break }
+            if ($i -lt 3) { Write-Host "Attempt $i failed, retrying in 15s..."; Start-Sleep 15 }
+          }
+
+      - name: Install Catch2
+        run: |
+          for ($i = 1; $i -le 3; $i++) {
+            & "$env:VCPKG_ROOT\vcpkg" install catch2:x64-windows
+            if ($?) { break }
+            if ($i -lt 3) { Write-Host "Attempt $i failed, retrying in 15s..."; Start-Sleep 15 }
+          }
+
+      - name: Configure CMake
+        working-directory: imgui-platform-kit
+        run: |
+          cmake -S . -B build/release `
+            -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" `
+            -DVCPKG_TARGET_TRIPLET=x64-windows `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/install"
+
+      - name: Build
+        working-directory: imgui-platform-kit
+        run: cmake --build build/release --config Release --parallel
+
+      - name: Run tests
+        working-directory: imgui-platform-kit/build/release
+        run: ctest --output-on-failure --build-config Release
+
+      - name: Install
+        working-directory: imgui-platform-kit
+        run: cmake --install build/release --config Release
+
+      - name: Set version
+        run: |
+          $version = "$env:GITHUB_REF_NAME" -replace '^v', ''
+          echo "VERSION=$version" >> $env:GITHUB_ENV
+
+      - name: Package
+        run: Compress-Archive -Path install -DestinationPath "imgui-platform-kit-${{ env.VERSION }}-windows-x64.zip"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: imgui-platform-kit-windows
+          path: imgui-platform-kit-${{ env.VERSION }}-windows-x64.zip
+
+  build-linux:
+    name: Build and package (Linux)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgl1-mesa-dev \
+            libglu1-mesa-dev \
+            libx11-dev \
+            libxrandr-dev \
+            libxinerama-dev \
+            libxcursor-dev \
+            libxi-dev \
+            libxext-dev \
+            pkg-config \
+            ninja-build
+
+      - name: Set up vcpkg
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git "$HOME/vcpkg"
+          "$HOME/vcpkg/bootstrap-vcpkg.sh" -disableMetrics
+          echo "VCPKG_ROOT=$HOME/vcpkg" >> $GITHUB_ENV
+
+      - name: Cache vcpkg packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.VCPKG_ROOT }}/installed
+            ${{ env.VCPKG_ROOT }}/packages
+          key: vcpkg-release-linux-x64-${{ hashFiles('**/CMakeLists.txt') }}
+          restore-keys: |
+            vcpkg-release-linux-x64-
+
+      - name: Install vcpkg dependencies
+        run: |
+          for attempt in 1 2 3; do
+            "$VCPKG_ROOT/vcpkg" install \
+              "imgui[docking-experimental,core,opengl3-binding,glfw-binding]:x64-linux" \
+              "implot:x64-linux" \
+              "imgui-node-editor:x64-linux" && break
+            echo "Attempt $attempt failed, retrying in 15s..."
+            sleep 15
+          done
+
+      - name: Install Catch2
+        run: |
+          for attempt in 1 2 3; do
+            $VCPKG_ROOT/vcpkg install catch2:x64-linux && break
+            echo "Attempt $attempt failed, retrying in 15s..."
+            sleep 15
+          done
+
+      - name: Configure CMake
+        working-directory: imgui-platform-kit
+        run: |
+          cmake -S . -B build/release \
+            -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" \
+            -DVCPKG_TARGET_TRIPLET=x64-linux \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/install"
+
+      - name: Build
+        working-directory: imgui-platform-kit
+        run: cmake --build build/release --config Release --parallel
+
+      - name: Run tests
+        working-directory: imgui-platform-kit/build/release
+        run: ctest --output-on-failure --build-config Release
+
+      - name: Install
+        working-directory: imgui-platform-kit
+        run: cmake --install build/release
+
+      - name: Package
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          tar -czf imgui-platform-kit-${VERSION}-linux-x64.tar.gz -C . install
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: imgui-platform-kit-linux
+          path: imgui-platform-kit-*-linux-x64.tar.gz
+
+  build-macos:
+    name: Build and package (macOS)
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up vcpkg
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git "$HOME/vcpkg"
+          "$HOME/vcpkg/bootstrap-vcpkg.sh" -disableMetrics
+          echo "VCPKG_ROOT=$HOME/vcpkg" >> $GITHUB_ENV
+
+      - name: Detect architecture and set triplet
+        run: |
+          ARCH=$(uname -m)
+          if [ "$ARCH" = "arm64" ]; then
+            echo "VCPKG_TRIPLET=arm64-osx" >> $GITHUB_ENV
+            echo "MACOS_ARCH=arm64" >> $GITHUB_ENV
+          else
+            echo "VCPKG_TRIPLET=x64-osx" >> $GITHUB_ENV
+            echo "MACOS_ARCH=x64" >> $GITHUB_ENV
+          fi
+
+      - name: Cache vcpkg packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.VCPKG_ROOT }}/installed
+            ${{ env.VCPKG_ROOT }}/packages
+          key: vcpkg-release-macos-${{ env.VCPKG_TRIPLET }}-${{ hashFiles('**/CMakeLists.txt') }}
+          restore-keys: |
+            vcpkg-release-macos-${{ env.VCPKG_TRIPLET }}-
+
+      - name: Install vcpkg dependencies
+        run: |
+          for attempt in 1 2 3; do
+            "$VCPKG_ROOT/vcpkg" install \
+              "imgui[docking-experimental,core,opengl3-binding,glfw-binding]:$VCPKG_TRIPLET" \
+              "implot:$VCPKG_TRIPLET" \
+              "imgui-node-editor:$VCPKG_TRIPLET" && break
+            echo "Attempt $attempt failed, retrying in 15s..."
+            sleep 15
+          done
+
+      - name: Install Catch2
+        run: |
+          for attempt in 1 2 3; do
+            $VCPKG_ROOT/vcpkg install catch2:$VCPKG_TRIPLET && break
+            echo "Attempt $attempt failed, retrying in 15s..."
+            sleep 15
+          done
+
+      - name: Configure CMake
+        working-directory: imgui-platform-kit
+        run: |
+          cmake -S . -B build/release \
+            -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" \
+            -DVCPKG_TARGET_TRIPLET="$VCPKG_TRIPLET" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/install"
+
+      - name: Build
+        working-directory: imgui-platform-kit
+        run: cmake --build build/release --config Release --parallel
+
+      - name: Run tests
+        working-directory: imgui-platform-kit/build/release
+        run: ctest --output-on-failure --build-config Release
+
+      - name: Install
+        working-directory: imgui-platform-kit
+        run: cmake --install build/release
+
+      - name: Package
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          tar -czf imgui-platform-kit-${VERSION}-macos-${MACOS_ARCH}.tar.gz -C . install
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: imgui-platform-kit-macos
+          path: imgui-platform-kit-*-macos-*.tar.gz
+
+  release:
+    name: Create GitHub Release
+    needs: [build-windows, build-linux, build-macos]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+          merge-multiple: true
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" artifacts/* \
+            --title "imgui-platform-kit $GITHUB_REF_NAME" \
+            --generate-notes
