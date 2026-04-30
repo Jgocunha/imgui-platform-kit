@@ -80,7 +80,7 @@ ctest --output-on-failure
 
 lcov --capture --directory . --output-file coverage.info
 lcov --remove coverage.info '/usr/*' "$HOME/vcpkg/*" '*/tests/*' '*/examples/*' \
-     --output-file coverage.info
+     --output-file coverage.info --ignore-errors unused
 lcov --list coverage.info
 ```
 

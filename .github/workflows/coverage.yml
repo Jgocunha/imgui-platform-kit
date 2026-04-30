@@ -92,7 +92,8 @@ jobs:
                "$HOME/vcpkg/*" \
                '*/tests/*' \
                '*/examples/*' \
-               --output-file coverage.info
+               --output-file coverage.info \
+               --ignore-errors unused
           lcov --list coverage.info
 
       - name: Upload to Codecov
