@@ -84,6 +84,7 @@ namespace imgui_kit
 	    {Theme::PurpleComfy, "Purple Comfy"},
 	    {Theme::QuickMinimal, "Quick Minimal"},
 	    {Theme::RedFont, "Red Font"},
+	    {Theme::RedOni, "Red Oni"},
 	    {Theme::RoundedVisualStudio, "Rounded Visual Studio"},
 	    {Theme::SoftCherry, "Soft Cherry"},
 	    {Theme::SonicRiders, "Sonic Riders"},
@@ -122,6 +123,7 @@ namespace imgui_kit
     void applyPurpleComfyTheme();
     void applyQuickMinimalTheme();
     void applyRedFontTheme();
+    void applyRedOniTheme();
     void applyRoundedVisualStudioTheme();
     void applySoftCherryTheme();
     void applySonicRidersTheme();
@@ -162,6 +164,7 @@ namespace imgui_kit
         {Theme::PurpleComfy, []() { applyPurpleComfyTheme(); }},
         {Theme::QuickMinimal, []() { applyQuickMinimalTheme(); }},
         {Theme::RedFont, []() { applyRedFontTheme(); }},
+        {Theme::RedOni, []() { applyRedOniTheme(); }},
         {Theme::RoundedVisualStudio, []() { applyRoundedVisualStudioTheme(); }},
         {Theme::SoftCherry, []() { applySoftCherryTheme(); }},
         {Theme::SonicRiders, []() { applySonicRidersTheme(); }},

@@ -55,6 +55,13 @@ jobs:
             -DVCPKG_TARGET_TRIPLET="$VCPKG_TRIPLET" \
             -DCMAKE_BUILD_TYPE=Release
 
+      - name: Install Catch2
+        run: $VCPKG_ROOT/vcpkg install catch2:$VCPKG_TRIPLET
+
       - name: Build
         working-directory: imgui-platform-kit
         run: cmake --build build/macos-ci --config Release --parallel
+
+      - name: Run tests
+        working-directory: imgui-platform-kit/build/macos-ci
+        run: ctest --output-on-failure --build-config Release

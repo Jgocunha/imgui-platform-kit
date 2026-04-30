@@ -28,7 +28,9 @@ namespace imgui_kit
         LogWindow();
         static void addLog(const ImVec4& color, const char* fmt, ...) IM_FMTARGS(2);
         void render() override { draw(); }
-        static bool isActive() { return isWindowActive;}
+        static bool isActive() { return isWindowActive; }
+        static size_t getLogCount() { return logs.size(); }
+        static void clearLogs() { logs.clear(); }
         static void renderContent();
         ~LogWindow() override = default;
     private:
