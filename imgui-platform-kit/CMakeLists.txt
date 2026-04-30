@@ -197,3 +197,8 @@ set(EXE_PROJECT_EXAMPLE ${CMAKE_PROJECT_NAME}-example)
 add_executable(${EXE_PROJECT_EXAMPLE} "examples/example.cpp")
 target_include_directories(${EXE_PROJECT_EXAMPLE} PRIVATE include)
 target_link_libraries(${EXE_PROJECT_EXAMPLE} PRIVATE imgui::imgui ${CMAKE_PROJECT_NAME})
+
+if(IMGUI_PLATFORM_KIT_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(${EXE_PROJECT_EXAMPLE} PRIVATE --coverage)
+    target_link_options(${EXE_PROJECT_EXAMPLE} PRIVATE --coverage)
+endif()
