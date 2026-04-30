@@ -1,6 +1,14 @@
 # ImPlot and Node Editor
 
-ImGui Platform Kit initialises both ImPlot and imgui-node-editor contexts for you as part of `UserInterface::initialize()` and tears them down in `UserInterface::shutdown()`. You do not need to call `ImPlot::CreateContext()` or `ImNodeEditor::CreateEditor()` yourself.
+**Context ownership — what the kit manages vs what you manage:**
+
+| Context | Created by | Destroyed by |
+|---|---|---|
+| `ImGui` | `UserInterface::initialize()` | `UserInterface::shutdown()` |
+| `ImPlot` | `UserInterface::initialize()` | your code (`ImPlot::DestroyContext()`) |
+| Node editor (`EditorContext`) | your code (`CreateEditor()`) | `UserInterface::shutdown()` via `GetCurrentEditor()` |
+
+You do not need to call `ImGui::CreateContext()` or `ImPlot::CreateContext()` — the kit does that. You must call `ImPlot::DestroyContext()` yourself before or after `shutdown()`. For the node editor, create your own `EditorContext` with `ax::NodeEditor::CreateEditor()`, set it as current with `SetCurrentEditor()` before each use, and the kit will destroy it for you in `shutdown()` (via `GetCurrentEditor()`).
 
 ## ImPlot
 
@@ -30,6 +38,16 @@ public:
 };
 ```
 
+The ImPlot context is created by the kit but not destroyed — call `ImPlot::DestroyContext()` after `userInterface.shutdown()`:
+
+```cpp
+userInterface.initialize();
+while (!userInterface.isShutdownRequested())
+    userInterface.render();
+userInterface.shutdown();
+ImPlot::DestroyContext();
+```
+
 Refer to the [ImPlot documentation](https://github.com/epezent/implot) for the full API.
 
 ## imgui-node-editor
@@ -49,12 +67,13 @@ public:
     {
         ax::NodeEditor::Config config;
         context = ax::NodeEditor::CreateEditor(&config);
+        // Set as current immediately so shutdown() can find it via GetCurrentEditor()
+        ax::NodeEditor::SetCurrentEditor(context);
     }
 
-    ~GraphWindow() override
-    {
-        ax::NodeEditor::DestroyEditor(context);
-    }
+    // Do NOT call DestroyEditor here — UserInterface::shutdown() does it
+    // via GetCurrentEditor(). Destroying it twice would crash.
+    ~GraphWindow() override = default;
 
     void render() override
     {

@@ -65,7 +65,7 @@ cd build/<platform>
 ctest --output-on-failure
 ```
 
-## Coverage build (Linux/GCC only)
+## Coverage build (Linux, GCC or Clang)
 
 ```bash
 cmake -S . -B build/coverage \
@@ -83,6 +83,8 @@ lcov --remove coverage.info '/usr/*' "$HOME/vcpkg/*" '*/tests/*' '*/examples/*' 
      --output-file coverage.info
 lcov --list coverage.info
 ```
+
+The `IMGUI_PLATFORM_KIT_COVERAGE` CMake option enables `--coverage` for both GCC and Clang. The `lcov` commands above use GCC's `gcov` by default. With Clang, pass `--gcov-tool llvm-cov gcov` to `lcov`, or use `llvm-cov show` directly. The CI coverage workflow runs on GCC (`ubuntu-latest`).
 
 ## Installing
 
