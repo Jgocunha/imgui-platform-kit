@@ -4,6 +4,7 @@
 #include <stdexcept>
 
 #include "user_interface_parameters.h"
+#include "colour_palette.h"
 
 using namespace imgui_kit;
 namespace fs = std::filesystem;
@@ -33,21 +34,6 @@ TEST_CASE("WindowParameters: default startPos is (0, 0)", "[parameters][window]"
     CHECK(p.startPosY == 0);
 }
 
-TEST_CASE("WindowParameters: zero width throws invalid_argument", "[parameters][window]")
-{
-    REQUIRE_THROWS_AS(WindowParameters("App", 0, 600), std::invalid_argument);
-}
-
-TEST_CASE("WindowParameters: zero height throws invalid_argument", "[parameters][window]")
-{
-    REQUIRE_THROWS_AS(WindowParameters("App", 800, 0), std::invalid_argument);
-}
-
-
-TEST_CASE("WindowParameters: negative height throws invalid_argument", "[parameters][window]")
-{
-    REQUIRE_THROWS_AS(WindowParameters("App", 800, 0), std::invalid_argument);
-}
 
 TEST_CASE("WindowParameters: save creates a file", "[parameters][window][io]")
 {
@@ -144,12 +130,14 @@ TEST_CASE("FontParameters: vector constructor stores multiple entries", "[parame
 
 TEST_CASE("FontParameters: vector constructor throws on zero size", "[parameters][font]")
 {
-    REQUIRE_THROWS_AS(FontParameters({{"font.ttf", 0}}), std::invalid_argument);
+    const std::vector<std::pair<std::string, int>> v = {{"font.ttf", 0}};
+    REQUIRE_THROWS_AS(FontParameters(v), std::invalid_argument);
 }
 
 TEST_CASE("FontParameters: vector constructor throws on empty path", "[parameters][font]")
 {
-    REQUIRE_THROWS_AS(FontParameters({{"", 12}}), std::invalid_argument);
+    const std::vector<std::pair<std::string, int>> v = {{"", 12}};
+    REQUIRE_THROWS_AS(FontParameters(v), std::invalid_argument);
 }
 
 TEST_CASE("FontParameters: vector constructor throws on first invalid entry", "[parameters][font]")

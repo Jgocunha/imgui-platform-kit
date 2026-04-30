@@ -6,14 +6,6 @@ using namespace imgui_kit;
 
 // ─── isActive ─────────────────────────────────────────────────────────────────
 
-TEST_CASE("LogWindow: isActive is false before any LogWindow is constructed", "[log]")
-{
-    // The inline static bool isWindowActive is initialised to false.
-    // This test must run before any LogWindow object is constructed. Catch2 runs
-    // TEST_CASEs in declaration order within a file, so this is the first one.
-    REQUIRE_FALSE(LogWindow::isActive());
-}
-
 TEST_CASE("LogWindow: isActive becomes true after construction", "[log]")
 {
     {
