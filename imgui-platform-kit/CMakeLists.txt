@@ -57,6 +57,10 @@ if(WIN32)
     set(platform_header
         "include/win32/win32_dx12_user_interface.h"
     )
+elseif(APPLE)
+    set(platform_header
+        "include/macos/glfw_opengl3_user_interface.h"
+    )
 elseif(UNIX AND NOT APPLE)
     set(platform_header
         "include/linux/glfw_opengl3_user_interface.h"
@@ -77,6 +81,10 @@ if(WIN32)
     set(platform_src
         "src/win32/win32_dx12_user_interface.cpp"
     )
+elseif(APPLE)
+    set(platform_src
+        "src/macos/glfw_opengl3_user_interface.cpp"
+    )
 elseif(UNIX AND NOT APPLE)
     set(platform_src
         "src/linux/glfw_opengl3_user_interface.cpp"
@@ -96,6 +104,20 @@ if(WIN32)
     # Setup imgui - win32 Directx12
     find_package(imgui CONFIG REQUIRED)
     target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE imgui::imgui "d3d12.lib" "dxgi.lib" "d3dcompiler.lib")
+elseif(APPLE)
+    # Setup GLFW and OpenGL for macOS
+    find_package(glfw3 REQUIRED)
+    find_package(OpenGL REQUIRED)
+    find_package(imgui CONFIG REQUIRED)
+    target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE
+        imgui::imgui
+        glfw
+        OpenGL::GL
+        "-framework Cocoa"
+        "-framework OpenGL"
+        "-framework IOKit"
+        "-framework CoreFoundation"
+    )
 elseif(UNIX AND NOT APPLE)
     # Setup GLFW and OpenGL
     find_package(glfw3 REQUIRED)

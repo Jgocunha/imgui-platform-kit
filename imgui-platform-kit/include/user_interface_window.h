@@ -7,7 +7,7 @@
 #if defined(_WIN32)
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx12.h"
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__APPLE__)
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #endif

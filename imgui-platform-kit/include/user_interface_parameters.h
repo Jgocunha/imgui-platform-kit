@@ -9,7 +9,7 @@
 
 #if defined(_WIN32)
 #include <Windows.h>
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__APPLE__)
 #include <GLFW/glfw3.h>
 #endif
 

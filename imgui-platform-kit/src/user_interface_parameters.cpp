@@ -28,7 +28,7 @@ namespace imgui_kit
 				this->height = desktop.bottom;
 			}
 		}
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__APPLE__)
 		if (this->width <= 0 || this->height <= 0)
 		{
 			if (!glfwInit())
