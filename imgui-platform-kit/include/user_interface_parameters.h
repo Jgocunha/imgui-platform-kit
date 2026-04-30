@@ -1,15 +1,18 @@
 #pragma once
 
 #include <algorithm>
+#include <cstdint>
 #include <stdexcept>
 #include <iostream>
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <utility>
+#include <vector>
 
 #if defined(_WIN32)
 #include <Windows.h>
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__APPLE__)
 #include <GLFW/glfw3.h>
 #endif
 

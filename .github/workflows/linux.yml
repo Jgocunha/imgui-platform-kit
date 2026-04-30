@@ -1,0 +1,73 @@
+name: Linux Build
+
+on:
+  push:
+    branches: [ main, master, macOS ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-linux:
+    name: Build on Linux
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgl1-mesa-dev \
+            libglu1-mesa-dev \
+            libx11-dev \
+            libxrandr-dev \
+            libxinerama-dev \
+            libxcursor-dev \
+            libxi-dev \
+            libxext-dev \
+            pkg-config \
+            ninja-build
+
+      - name: Set up vcpkg
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git "$HOME/vcpkg"
+          "$HOME/vcpkg/bootstrap-vcpkg.sh" -disableMetrics
+          echo "VCPKG_ROOT=$HOME/vcpkg" >> $GITHUB_ENV
+
+      - name: Cache vcpkg packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.VCPKG_ROOT }}/installed
+            ${{ env.VCPKG_ROOT }}/packages
+          key: vcpkg-linux-x64-linux-${{ hashFiles('**/CMakeLists.txt') }}
+          restore-keys: |
+            vcpkg-linux-x64-linux-
+
+      - name: Install vcpkg dependencies
+        run: |
+          "$VCPKG_ROOT/vcpkg" install \
+            "imgui[docking-experimental,core,opengl3-binding,glfw-binding]:x64-linux" \
+            "implot:x64-linux" \
+            "imgui-node-editor:x64-linux"
+
+      - name: Install Catch2
+        run: $VCPKG_ROOT/vcpkg install catch2:x64-linux
+
+      - name: Configure CMake
+        working-directory: imgui-platform-kit
+        run: |
+          cmake -S . -B build/linux-ci \
+            -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" \
+            -DVCPKG_TARGET_TRIPLET=x64-linux \
+            -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        working-directory: imgui-platform-kit
+        run: cmake --build build/linux-ci --config Release --parallel
+
+      - name: Run tests
+        working-directory: imgui-platform-kit/build/linux-ci
+        run: ctest --output-on-failure --build-config Release

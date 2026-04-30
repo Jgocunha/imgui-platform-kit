@@ -30,7 +30,7 @@ int main(int argc, char* argv[])
 		const StyleParameters styleParameters(Theme::Windark, backgroundColor);
 		#ifdef _WIN32
 		const IconParameters iconParameters(std::string(PROJECT_DIR) + "/resources/icons/icon.ico");
-		#elif __linux__
+		#elif defined(__linux__) || defined(__APPLE__)
 		const IconParameters iconParameters(std::string(PROJECT_DIR) + "/resources/icons/icon.png");
 		#endif
 		const BackgroundImageParameters backgroundImageParameters(std::string(PROJECT_DIR) + "/resources/images/logo-bg.png");

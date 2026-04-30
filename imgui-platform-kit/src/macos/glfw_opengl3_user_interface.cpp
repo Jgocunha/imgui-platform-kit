@@ -1,5 +1,5 @@
 
-#if defined(__linux__)
+#if defined(__APPLE__)
 
 #include "user_interface.h"
 
@@ -38,30 +38,12 @@ namespace imgui_kit
             return;
         }
 
-            // Decide GL+GLSL versions
-        #if defined(IMGUI_IMPL_OPENGL_ES2)
-            // GL ES 2.0 + GLSL 100
-            const char* glsl_version = "#version 100";
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-            glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
-        #elif defined(__APPLE__)
-            // GL 3.2 + GLSL 150
-            const char* glsl_version = "#version 150";
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-            glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
-            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // Required on Mac
-        #else
-            // GL 3.0 + GLSL 130
-            const char* glsl_version = "#version 130";
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-            //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
-            //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
-        #endif
-
-        glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
+        // GL 3.2 + GLSL 150 (macOS requires Core Profile with forward compatibility)
+        const char* glsl_version = "#version 150";
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // Required on Mac
 
         // Create window with graphics context
         window = glfwCreateWindow(parameters.windowParameters.width,
@@ -86,14 +68,9 @@ namespace imgui_kit
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
         io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;       // Enable Multi-Viewport / Platform Windows
-        //io.ConfigViewportsNoAutoMerge = true;
-        //io.ConfigViewportsNoTaskBarIcon = true;
 
         // Setup Platform/Renderer backends
         ImGui_ImplGlfw_InitForOpenGL(window, true);
-    #ifdef __EMSCRIPTEN__
-        ImGui_ImplGlfw_InstallEmscriptenCanvasResizeCallback("#canvas");
-    #endif
         ImGui_ImplOpenGL3_Init(glsl_version);
 
         // Setup Dear ImGui style
@@ -107,11 +84,6 @@ namespace imgui_kit
     {
         shutdownRequest = glfwWindowShouldClose(window);
 
-        // Poll and handle events (inputs, window resize, etc.)
-        // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
-        // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or clear/overwrite your copy of the mouse data.
-        // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application, or clear/overwrite your copy of the keyboard data.
-        // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
         glfwPollEvents();
 
         // Start the Dear ImGui frame
@@ -137,8 +109,6 @@ namespace imgui_kit
         const ImGuiIO& io = ImGui::GetIO(); (void)io;
         updateFontGlobalScale();
         // Update and Render additional Platform Windows
-        // (Platform functions may change the current OpenGL context, so we save/restore it to make it easier to paste this code elsewhere.
-        //  For this specific demo app we could also call glfwMakeContextCurrent(window) directly)
         if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
         {
             GLFWwindow* backup_current_context = glfwGetCurrentContext();
@@ -171,9 +141,10 @@ namespace imgui_kit
 
     void UserInterface::loadIcon() const
     {
+        // glfwSetWindowIcon is a no-op on macOS; the app icon is set via the app bundle
         int width, height, channels;
-        unsigned char* data = stbi_load(parameters.iconParameters.path.c_str(), 
-        &width, &height, &channels, 4); // Load with 4 channels (RGBA)
+        unsigned char* data = stbi_load(parameters.iconParameters.path.c_str(),
+        &width, &height, &channels, 4);
 
         if (data) {
             GLFWimage image;
@@ -182,9 +153,7 @@ namespace imgui_kit
             image.pixels = data;
 
             glfwSetWindowIcon(window, 1, &image);
-            stbi_image_free(data); // Free image data memory after setting the icon
-        } else {
-            std::cerr << "Failed to load icon. Error: " << stbi_failure_reason() << std::endl;
+            stbi_image_free(data);
         }
     }
 
@@ -196,32 +165,28 @@ namespace imgui_kit
 
         for (const auto& [path, size] : parameters.fontParameters.pathsAndSizes)
         {
-            // Check if the font file exists
             if (!std::filesystem::exists(path))
             {
                 std::cerr << "Font file does not exist: " << path << std::endl;
-                continue; // Try the next font in the list
+                continue;
             }
 
-            // Attempt to load the font
             const ImFont* font = io_ref.Fonts->AddFontFromFileTTF(path.c_str(), static_cast<float>(size));
             if (font == nullptr)
             {
                 std::cerr << "Failed to load font: " << path << " with size " << size << std::endl;
-                continue; // Try the next font in the list
+                continue;
             }
 
-            fontLoaded = true; // At least one font was loaded successfully
+            fontLoaded = true;
         }
 
-        // If no fonts were loaded, add a default font
         if (!fontLoaded)
         {
             std::cerr << "No fonts loaded successfully. Adding default font." << std::endl;
             io_ref.Fonts->AddFontDefault();
         }
 
-        // Set global scale
         io_ref.FontGlobalScale = GetDpiScale(window);
     }
 
@@ -229,8 +194,8 @@ namespace imgui_kit
     void UserInterface::loadBackgroundImage()
     {
         const bool ret = LoadTextureFromFile(backgroundImageTexture.parameters.path.c_str(),
-        &backgroundImageTexture.texture, 
-        &backgroundImageTexture.parameters.width, 
+        &backgroundImageTexture.texture,
+        &backgroundImageTexture.parameters.width,
         &backgroundImageTexture.parameters.height);
         if (!ret)
         {
@@ -253,20 +218,16 @@ namespace imgui_kit
             backgroundImageTexture.parameters.height <= 0)
             return;
 
-        // Obtain the main viewport
         ImGuiViewport* viewport = ImGui::GetMainViewport();
 
-        // Use the viewport's size to determine how to center the image
-        const ImVec2 windowSize = viewport->Size; // This is the size of the area we can draw in
+        const ImVec2 windowSize = viewport->Size;
 
         const float dpiScale = GetDpiScale(window);
 
-        // Original image size scaled by DPI
         const ImVec2 originalImageSize = ImVec2(
             (float)backgroundImageTexture.parameters.width * dpiScale,
             (float)backgroundImageTexture.parameters.height * dpiScale);
 
-        // Calculate the aspect ratio of the image
         const float aspectRatio = originalImageSize.x / originalImageSize.y;
 
         ImVec2 imageSize;
@@ -274,12 +235,12 @@ namespace imgui_kit
         {
         case ImageFitType::KEEP_ASPECT_RATIO:
         {
-            if (windowSize.x / aspectRatio <= windowSize.y) // Fit to width
+            if (windowSize.x / aspectRatio <= windowSize.y)
             {
                 imageSize.x = windowSize.x;
                 imageSize.y = windowSize.x / aspectRatio;
             }
-            else // Fit to height
+            else
             {
                 imageSize.y = windowSize.y;
                 imageSize.x = windowSize.y * aspectRatio;
@@ -288,12 +249,12 @@ namespace imgui_kit
         break;
         case ImageFitType::ZOOM_TO_FIT:
         {
-            if (windowSize.x / aspectRatio > windowSize.y) // Cover height
+            if (windowSize.x / aspectRatio > windowSize.y)
             {
                 imageSize.x = windowSize.x;
                 imageSize.y = windowSize.x / aspectRatio;
             }
-            else // Cover width
+            else
             {
                 imageSize.y = windowSize.y;
                 imageSize.x = windowSize.y * aspectRatio;
@@ -302,15 +263,13 @@ namespace imgui_kit
         break;
         }
 
-        // Calculate the top-left position to center the image in the viewport
         const ImVec2 pos = ImVec2(viewport->Pos.x + (windowSize.x - imageSize.x) * 0.5f,
             viewport->Pos.y + (windowSize.y - imageSize.y) * 0.5f);
 
-        // Get the viewport's background draw list and add the image
         ImGui::GetBackgroundDrawList(viewport)->AddImage(
             (ImTextureID)backgroundImageTexture.texture,
             pos, ImVec2(pos.x + imageSize.x, pos.y + imageSize.y));
-    }	
+    }
 
     void UserInterface::updateLastRenderedFrameDimensions()
     {
@@ -339,26 +298,22 @@ namespace imgui_kit
 // Simple helper function to load an image into a OpenGL texture with common settings
 bool LoadTextureFromFile(const char* filename, GLuint* out_texture, int* out_width, int* out_height)
 {
-    // Load from file
     int image_width = 0;
     int image_height = 0;
     unsigned char* image_data = stbi_load(filename, &image_width, &image_height, NULL, 4);
     if (image_data == NULL)
         return false;
 
-    // Create a OpenGL texture identifier
     GLuint image_texture;
     glGenTextures(1, &image_texture);
     glBindTexture(GL_TEXTURE_2D, image_texture);
 
-    // Setup filtering parameters for display
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // This is required on WebGL for non power-of-two textures
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // Same
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    // Upload pixels into texture
-#if defined(GL_UNPACK_ROW_LENGTH) && !defined(__EMSCRIPTEN__)
+#if defined(GL_UNPACK_ROW_LENGTH)
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 #endif
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_width, image_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
@@ -372,7 +327,7 @@ bool LoadTextureFromFile(const char* filename, GLuint* out_texture, int* out_wid
 }
 
 // Helper function to find the monitor where the window is currently located
-GLFWmonitor* GetActiveMonitor(GLFWwindow* window) 
+GLFWmonitor* GetActiveMonitor(GLFWwindow* window)
 {
     int windowX, windowY, windowWidth, windowHeight;
     int monitorCount;
@@ -389,21 +344,19 @@ GLFWmonitor* GetActiveMonitor(GLFWwindow* window)
         if (windowX >= monitorX &&
             windowY >= monitorY &&
             windowX + windowWidth <= monitorX + mode->width &&
-            windowY + windowHeight <= monitorY + mode->height) 
+            windowY + windowHeight <= monitorY + mode->height)
         {
             return monitors[i];
         }
     }
-    // Return the primary monitor if the window is not fully on any monitor
     return glfwGetPrimaryMonitor();
 }
 
-// Helper function to get the DPI scale of a window
+// Helper function to get the DPI scale of a window using window content scale (Retina-aware)
 float GetDpiScale(GLFWwindow* window)
 {
-	float xscale, yscale;
-    GLFWmonitor* monitor = GetActiveMonitor(window);
-    glfwGetMonitorContentScale(monitor, &xscale, &yscale);
+    float xscale, yscale;
+    glfwGetWindowContentScale(window, &xscale, &yscale);
     return yscale;
 }
 

@@ -1,0 +1,59 @@
+name: Windows Build
+
+on:
+  push:
+    branches: [ main, master, macOS ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-windows:
+    name: Build on Windows
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up vcpkg
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git "$env:USERPROFILE\vcpkg"
+          & "$env:USERPROFILE\vcpkg\bootstrap-vcpkg.bat" -disableMetrics
+          echo "VCPKG_ROOT=$env:USERPROFILE\vcpkg" >> $env:GITHUB_ENV
+
+      - name: Cache vcpkg packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.VCPKG_ROOT }}/installed
+            ${{ env.VCPKG_ROOT }}/packages
+          key: vcpkg-windows-x64-windows-${{ hashFiles('**/CMakeLists.txt') }}
+          restore-keys: |
+            vcpkg-windows-x64-windows-
+
+      - name: Install vcpkg dependencies
+        run: |
+          & "$env:VCPKG_ROOT\vcpkg" install `
+            "imgui[docking-experimental,core,dx12-binding,win32-binding]:x64-windows" `
+            "implot:x64-windows" `
+            "imgui-node-editor:x64-windows"
+
+      - name: Install Catch2
+        run: |
+          & "$env:VCPKG_ROOT\vcpkg" install catch2:x64-windows
+
+      - name: Configure CMake
+        working-directory: imgui-platform-kit
+        run: |
+          cmake -S . -B build/windows-ci `
+            -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" `
+            -DVCPKG_TARGET_TRIPLET=x64-windows `
+            -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        working-directory: imgui-platform-kit
+        run: cmake --build build/windows-ci --config Release --parallel
+
+      - name: Run tests
+        working-directory: imgui-platform-kit/build/windows-ci
+        run: ctest --output-on-failure --build-config Release

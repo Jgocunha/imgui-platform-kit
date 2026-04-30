@@ -1,0 +1,67 @@
+name: macOS Build
+
+on:
+  push:
+    branches: [ main, master, macOS ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-macos:
+    name: Build on macOS
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up vcpkg
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git "$HOME/vcpkg"
+          "$HOME/vcpkg/bootstrap-vcpkg.sh" -disableMetrics
+          echo "VCPKG_ROOT=$HOME/vcpkg" >> $GITHUB_ENV
+
+      - name: Detect architecture and set triplet
+        run: |
+          ARCH=$(uname -m)
+          if [ "$ARCH" = "arm64" ]; then
+            echo "VCPKG_TRIPLET=arm64-osx" >> $GITHUB_ENV
+          else
+            echo "VCPKG_TRIPLET=x64-osx" >> $GITHUB_ENV
+          fi
+
+      - name: Cache vcpkg packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.VCPKG_ROOT }}/installed
+            ${{ env.VCPKG_ROOT }}/packages
+          key: vcpkg-macos-${{ env.VCPKG_TRIPLET }}-${{ hashFiles('**/CMakeLists.txt') }}
+          restore-keys: |
+            vcpkg-macos-${{ env.VCPKG_TRIPLET }}-
+
+      - name: Install vcpkg dependencies
+        run: |
+          "$VCPKG_ROOT/vcpkg" install \
+            "imgui[docking-experimental,core,opengl3-binding,glfw-binding]:$VCPKG_TRIPLET" \
+            "implot:$VCPKG_TRIPLET" \
+            "imgui-node-editor:$VCPKG_TRIPLET"
+
+      - name: Install Catch2
+        run: $VCPKG_ROOT/vcpkg install catch2:$VCPKG_TRIPLET
+
+      - name: Configure CMake
+        working-directory: imgui-platform-kit
+        run: |
+          cmake -S . -B build/macos-ci \
+            -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" \
+            -DVCPKG_TARGET_TRIPLET="$VCPKG_TRIPLET" \
+            -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        working-directory: imgui-platform-kit
+        run: cmake --build build/macos-ci --config Release --parallel
+
+      - name: Run tests
+        working-directory: imgui-platform-kit/build/macos-ci
+        run: ctest --output-on-failure --build-config Release
