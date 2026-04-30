@@ -33,14 +33,22 @@ jobs:
 
       - name: Install vcpkg dependencies
         run: |
-          & "$env:VCPKG_ROOT\vcpkg" install `
-            "imgui[docking-experimental,core,dx12-binding,win32-binding]:x64-windows" `
-            "implot:x64-windows" `
-            "imgui-node-editor:x64-windows"
+          for ($i = 1; $i -le 3; $i++) {
+            & "$env:VCPKG_ROOT\vcpkg" install `
+              "imgui[docking-experimental,core,dx12-binding,win32-binding]:x64-windows" `
+              "implot:x64-windows" `
+              "imgui-node-editor:x64-windows"
+            if ($?) { break }
+            if ($i -lt 3) { Write-Host "Attempt $i failed, retrying in 15s..."; Start-Sleep 15 }
+          }
 
       - name: Install Catch2
         run: |
-          & "$env:VCPKG_ROOT\vcpkg" install catch2:x64-windows
+          for ($i = 1; $i -le 3; $i++) {
+            & "$env:VCPKG_ROOT\vcpkg" install catch2:x64-windows
+            if ($?) { break }
+            if ($i -lt 3) { Write-Host "Attempt $i failed, retrying in 15s..."; Start-Sleep 15 }
+          }
 
       - name: Configure CMake
         working-directory: imgui-platform-kit

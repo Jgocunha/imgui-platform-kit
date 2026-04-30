@@ -147,6 +147,16 @@ set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+option(IMGUI_PLATFORM_KIT_COVERAGE "Enable code coverage instrumentation (GCC/Clang only)" OFF)
+if(IMGUI_PLATFORM_KIT_COVERAGE)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE --coverage)
+        target_link_options(${CMAKE_PROJECT_NAME} PRIVATE --coverage)
+    else()
+        message(WARNING "IMGUI_PLATFORM_KIT_COVERAGE is only supported with GCC or Clang")
+    endif()
+endif()
+
 # Install the library (binaries)
 install(TARGETS ${CMAKE_PROJECT_NAME} EXPORT ${CMAKE_PROJECT_NAME}Targets
     RUNTIME DESTINATION ${IMGUI_PLATFORM_KIT_RUNTIME_INSTALL_DIR}
@@ -187,3 +197,8 @@ set(EXE_PROJECT_EXAMPLE ${CMAKE_PROJECT_NAME}-example)
 add_executable(${EXE_PROJECT_EXAMPLE} "examples/example.cpp")
 target_include_directories(${EXE_PROJECT_EXAMPLE} PRIVATE include)
 target_link_libraries(${EXE_PROJECT_EXAMPLE} PRIVATE imgui::imgui ${CMAKE_PROJECT_NAME})
+
+if(IMGUI_PLATFORM_KIT_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(${EXE_PROJECT_EXAMPLE} PRIVATE --coverage)
+    target_link_options(${EXE_PROJECT_EXAMPLE} PRIVATE --coverage)
+endif()
