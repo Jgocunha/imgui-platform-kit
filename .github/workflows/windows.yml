@@ -39,7 +39,8 @@ jobs:
             "imgui-node-editor:x64-windows"
 
       - name: Install Catch2
-        run: & "$env:VCPKG_ROOT\vcpkg" install catch2:x64-windows
+        run: |
+          & "$env:VCPKG_ROOT\vcpkg" install catch2:x64-windows
 
       - name: Configure CMake
         working-directory: imgui-platform-kit
