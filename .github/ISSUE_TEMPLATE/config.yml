@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Dear ImGui Issues
+    url: https://github.com/ocornut/imgui/issues
+    about: For bugs or questions in Dear ImGui itself
+  - name: ImPlot Issues
+    url: https://github.com/epezent/implot/issues
+    about: For bugs or questions in ImPlot itself
+  - name: imgui-node-editor Issues
+    url: https://github.com/thedmd/imgui-node-editor/issues
+    about: For bugs or questions in imgui-node-editor itself
