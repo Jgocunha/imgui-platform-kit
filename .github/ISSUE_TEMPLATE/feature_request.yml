@@ -1,0 +1,69 @@
+name: Feature Request
+description: Propose a new feature or enhancement for imgui-platform-kit
+title: "[Feature] <short description>"
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for proposing an improvement. Please check existing issues first to avoid duplicates.
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      description: Which part of the library does this affect?
+      multiple: true
+      options:
+        - Core API (UserInterface, parameters)
+        - Windows platform (DirectX 12)
+        - Linux platform (GLFW/OpenGL3)
+        - macOS platform (GLFW/OpenGL3)
+        - Rendering / image handling
+        - Theming / styling
+        - Tests / coverage
+        - CI / build system
+        - Documentation
+        - New dependency integration
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or Motivation
+      description: What problem does this solve, or what gap does it fill?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the desired behavior or API you have in mind.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Other approaches you considered and why you ruled them out.
+
+  - type: dropdown
+    id: breaking
+    attributes:
+      label: Breaking Change?
+      description: Would this change break existing users of the library?
+      options:
+        - "No"
+        - "Yes — describe in Additional Context"
+        - "Unsure"
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Mockups, related PRs, relevant upstream issues (Dear ImGui, implot, imgui-node-editor, etc.)
