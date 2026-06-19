@@ -22,9 +22,10 @@ jobs:
           persist-credentials: false
 
       - name: Check documentation completeness with Gemini
-        uses: google-github-actions/run-gemini-cli@f77273f4c914e4bf38440cf36a0369cb64a37489 # v0
+        uses: google-github-actions/run-gemini-cli@055c24c9f565debe282e4adf1f7ca1715040ebe2 # v0 (2026-06-19)
         with:
           gemini_cli_version: latest
+          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
           prompt: |
             This pull request modifies one or more public API headers under
             `imgui-platform-kit/include/`. Audit the documentation impact and post a
@@ -58,21 +59,10 @@ jobs:
                c) CHANGELOG — if the API change is notable (new feature, behaviour change,
                   parameter rename), flag that CHANGELOG.md may need an entry under [Unreleased].
 
-            3. Post the findings as a PR comment. First check if a previous doc-sync
-               comment already exists on this PR:
-               gh api repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments \
-                 --jq '.[] | select(.body | startswith("## Documentation sync check")) | .id' \
-                 > /tmp/existing_comment_id.txt
+            3. Post the findings as a PR comment:
+               gh pr comment ${{ github.event.pull_request.number }} --body "..."
 
-               If a comment ID was found (file is non-empty), update it in place:
-               gh api --method PATCH \
-                 repos/${{ github.repository }}/issues/comments/$(cat /tmp/existing_comment_id.txt) \
-                 -f body="<comment body>"
-
-               If no comment ID was found, create a new one:
-               gh pr comment ${{ github.event.pull_request.number }} --body "<comment body>"
-
-               Use this structure for <comment body>:
+               Use this structure in the comment body:
                ## Documentation sync check
 
                ### Doxygen
@@ -87,5 +77,5 @@ jobs:
                Write "No issues found." under any heading with nothing to report.
                One line per item. Do not suggest replacement wording — only identify what needs attention.
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_CLI_TRUST_WORKSPACE: 'true'
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -45,9 +45,10 @@ jobs:
 
       - name: Classify issue with Gemini
         id: classify
-        uses: google-github-actions/run-gemini-cli@f77273f4c914e4bf38440cf36a0369cb64a37489 # v0
+        uses: google-github-actions/run-gemini-cli@055c24c9f565debe282e4adf1f7ca1715040ebe2 # v0 (2026-06-19)
         with:
           gemini_cli_version: latest
+          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
           prompt: |
             Classify a GitHub issue for the **imgui-platform-kit** project and return ONLY a JSON object.
             Do not execute any commands. Do not produce any text outside the JSON object.
@@ -58,7 +59,6 @@ jobs:
             built-in themes, ImPlot integration, and imgui-node-editor integration.
 
             Issue title: ${{ github.event.issue.title }}
-            Issue body: ${{ github.event.issue.body }}
 
             Existing issues (for duplicate detection):
             ${{ steps.existing.outputs.fetched }}
@@ -105,7 +105,7 @@ jobs:
               "comment": "..."
             }
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_CLI_TRUST_WORKSPACE: 'true'
 
       - name: Apply labels and post comment
         env:
@@ -116,6 +116,7 @@ jobs:
         run: |
           TYPE_LABEL=$(echo "$TRIAGE"    | jq -r '.type_label')
           PRIORITY=$(echo "$TRIAGE"      | jq -r '.priority_label')
+          SECONDARY=$(echo "$TRIAGE"     | jq -r '.secondary_labels[]' 2>/dev/null || true)
           DUPLICATE_OF=$(echo "$TRIAGE"  | jq -r '.duplicate_of // empty')
           COMMENT=$(echo "$TRIAGE"       | jq -r '.comment')
 
@@ -131,23 +132,20 @@ jobs:
             PRIORITY="priority: medium"
           fi
 
+          ALLOWED_SECONDARY="help wanted good first issue duplicate"
           LABELS="$TYPE_LABEL,$PRIORITY"
-          while IFS= read -r lbl; do
-            [ -z "$lbl" ] && continue
-            case "$lbl" in
-              "help wanted"|"good first issue"|"duplicate")
-                LABELS="$LABELS,$lbl" ;;
-              *)
-                echo "Skipping unexpected secondary label: '$lbl'" ;;
-            esac
-          done <<< "$(echo "$TRIAGE" | jq -r '.secondary_labels[]' 2>/dev/null || true)"
+          for lbl in $SECONDARY; do
+            if echo "$ALLOWED_SECONDARY" | grep -qw "$lbl"; then
+              LABELS="$LABELS,$lbl"
+            else
+              echo "Skipping unexpected secondary label: '$lbl'"
+            fi
+          done
 
           gh issue edit "$ISSUE_NUMBER" --add-label "$LABELS"
           gh issue comment "$ISSUE_NUMBER" --body "$COMMENT"
 
-          if [ -n "$DUPLICATE_OF" ] && echo "$DUPLICATE_OF" | grep -qE '^[1-9][0-9]*$' && [ "$DUPLICATE_OF" != "$ISSUE_NUMBER" ]; then
+          if [ -n "$DUPLICATE_OF" ]; then
             gh issue close "$ISSUE_NUMBER" --reason "not planned" \
               --comment "Closing as duplicate of #${DUPLICATE_OF}."
-          elif [ -n "$DUPLICATE_OF" ]; then
-            echo "Skipping auto-close: duplicate_of '$DUPLICATE_OF' is invalid or self-referential"
           fi
