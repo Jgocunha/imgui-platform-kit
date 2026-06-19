@@ -58,6 +58,7 @@ jobs:
             built-in themes, ImPlot integration, and imgui-node-editor integration.
 
             Issue title: ${{ github.event.issue.title }}
+            Issue body: ${{ github.event.issue.body }}
 
             Existing issues (for duplicate detection):
             ${{ steps.existing.outputs.fetched }}
