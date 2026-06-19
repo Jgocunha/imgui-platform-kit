@@ -116,7 +116,6 @@ jobs:
         run: |
           TYPE_LABEL=$(echo "$TRIAGE"    | jq -r '.type_label')
           PRIORITY=$(echo "$TRIAGE"      | jq -r '.priority_label')
-          SECONDARY=$(echo "$TRIAGE"     | jq -r '.secondary_labels[]' 2>/dev/null || true)
           DUPLICATE_OF=$(echo "$TRIAGE"  | jq -r '.duplicate_of // empty')
           COMMENT=$(echo "$TRIAGE"       | jq -r '.comment')
 
@@ -132,15 +131,16 @@ jobs:
             PRIORITY="priority: medium"
           fi
 
-          ALLOWED_SECONDARY="help wanted good first issue duplicate"
           LABELS="$TYPE_LABEL,$PRIORITY"
-          for lbl in $SECONDARY; do
-            if echo "$ALLOWED_SECONDARY" | grep -qw "$lbl"; then
-              LABELS="$LABELS,$lbl"
-            else
-              echo "Skipping unexpected secondary label: '$lbl'"
-            fi
-          done
+          while IFS= read -r lbl; do
+            [ -z "$lbl" ] && continue
+            case "$lbl" in
+              "help wanted"|"good first issue"|"duplicate")
+                LABELS="$LABELS,$lbl" ;;
+              *)
+                echo "Skipping unexpected secondary label: '$lbl'" ;;
+            esac
+          done <<< "$(echo "$TRIAGE" | jq -r '.secondary_labels[]' 2>/dev/null || true)"
 
           gh issue edit "$ISSUE_NUMBER" --add-label "$LABELS"
           gh issue comment "$ISSUE_NUMBER" --body "$COMMENT"
