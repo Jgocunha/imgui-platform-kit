@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Pre-filled issue backlog in `.github/issues/` documenting 5 known bugs and 7 planned features.
+- Gemini-powered issue triage workflow (`gemini-issue-triage.yml`): auto-labels and welcomes new issues, detects duplicates, and validates model output before auto-closing.
+- Documentation sync workflow (`gemini-doc-sync.yml`): audits Doxygen, README, and CHANGELOG on PRs touching `include/`; updates existing comment in place on re-runs.
+- Monthly vcpkg maintenance workflow (`vcpkg-maintenance.yml`): creates a version report issue on the 1st of each month for `imgui`, `implot`, `imgui-node-editor`, and `catch2`.
+- `.coderabbit.yaml`: CodeRabbit auto-review with C++20 style, platform guard, Doxygen, and test coverage rules.
+
+### Fixed
+- CMakeLists version bumped from `1.0` to `2.0.0`; added `VERSION_PATCH` variable and compile definition to match the v2.0.0 git tag.
+
 ---
 
 ## [2.0.1] — 2026-06-09
@@ -65,3 +77,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `LogWindow::renderContent()` extracted from the main render path for modularity.
 - Global window flag variables converted from global to `inline constexpr` for better linkage.
 - SRV descriptor heap management refactored into dedicated helper functions in the DX12 backend.
+
+[Unreleased]: https://github.com/Jgocunha/imgui-platform-kit/compare/v2.0.1...HEAD
+[2.0.1]: https://github.com/Jgocunha/imgui-platform-kit/compare/v2.0.0...v2.0.1
+[2.0.0]: https://github.com/Jgocunha/imgui-platform-kit/releases/tag/v2.0.0
