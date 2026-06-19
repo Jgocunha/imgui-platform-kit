@@ -145,7 +145,9 @@ jobs:
           gh issue edit "$ISSUE_NUMBER" --add-label "$LABELS"
           gh issue comment "$ISSUE_NUMBER" --body "$COMMENT"
 
-          if [ -n "$DUPLICATE_OF" ]; then
+          if [ -n "$DUPLICATE_OF" ] && echo "$DUPLICATE_OF" | grep -qE '^[1-9][0-9]*$' && [ "$DUPLICATE_OF" != "$ISSUE_NUMBER" ]; then
             gh issue close "$ISSUE_NUMBER" --reason "not planned" \
               --comment "Closing as duplicate of #${DUPLICATE_OF}."
+          elif [ -n "$DUPLICATE_OF" ]; then
+            echo "Skipping auto-close: duplicate_of '$DUPLICATE_OF' is invalid or self-referential"
           fi
