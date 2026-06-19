@@ -1,0 +1,91 @@
+name: Documentation Sync Check
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize]
+    paths:
+      - 'imgui-platform-kit/include/**'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  doc-sync:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check documentation completeness with Gemini
+        uses: google-github-actions/run-gemini-cli@f77273f4c914e4bf38440cf36a0369cb64a37489 # v0
+        with:
+          gemini_cli_version: latest
+          prompt: |
+            This pull request modifies one or more public API headers under
+            `imgui-platform-kit/include/`. Audit the documentation impact and post a
+            single PR comment listing what needs updating. Do NOT commit or modify any files.
+
+            Repository: ${{ github.repository }}
+            PR number: ${{ github.event.pull_request.number }}
+
+            Project layout:
+            - Public headers: imgui-platform-kit/include/**/*.h
+            - README:         README.md (top-level)
+            - Changelog:      CHANGELOG.md (top-level)
+
+            Documentation convention: every public class, struct, and function in include/
+            should have a Doxygen block with at minimum @brief, one @param per parameter,
+            and @return (unless void).
+
+            Steps:
+            1. Run: gh pr diff ${{ github.event.pull_request.number }}
+               to see the changed files and lines.
+
+            2. For each changed header file, check:
+
+               a) Doxygen — new public functions/methods: does each have a complete block?
+                  Existing functions with changed signatures: is the Doxygen still accurate?
+                  List each issue as: include/path/file.h — FunctionName: what is missing.
+
+               b) README — scan README.md for code snippets using the changed API. List any
+                  snippets that may need updating with an approximate line reference.
+
+               c) CHANGELOG — if the API change is notable (new feature, behaviour change,
+                  parameter rename), flag that CHANGELOG.md may need an entry under [Unreleased].
+
+            3. Post the findings as a PR comment. First check if a previous doc-sync
+               comment already exists on this PR:
+               gh api repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments \
+                 --jq '.[] | select(.body | startswith("## Documentation sync check")) | .id' \
+                 > /tmp/existing_comment_id.txt
+
+               If a comment ID was found (file is non-empty), update it in place:
+               gh api --method PATCH \
+                 repos/${{ github.repository }}/issues/comments/$(cat /tmp/existing_comment_id.txt) \
+                 -f body="<comment body>"
+
+               If no comment ID was found, create a new one:
+               gh pr comment ${{ github.event.pull_request.number }} --body "<comment body>"
+
+               Use this structure for <comment body>:
+               ## Documentation sync check
+
+               ### Doxygen
+               - [ ] include/path/file.h — FunctionName: missing @param x
+
+               ### README
+               - [ ] Line ~42: snippet uses old constructor signature
+
+               ### CHANGELOG
+               - [ ] Consider adding entry under [Unreleased] for the UserInterface API change
+
+               Write "No issues found." under any heading with nothing to report.
+               One line per item. Do not suggest replacement wording — only identify what needs attention.
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
