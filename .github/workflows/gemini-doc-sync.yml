@@ -58,10 +58,21 @@ jobs:
                c) CHANGELOG — if the API change is notable (new feature, behaviour change,
                   parameter rename), flag that CHANGELOG.md may need an entry under [Unreleased].
 
-            3. Post the findings as a PR comment:
-               gh pr comment ${{ github.event.pull_request.number }} --body "..."
+            3. Post the findings as a PR comment. First check if a previous doc-sync
+               comment already exists on this PR:
+               gh api repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments \
+                 --jq '.[] | select(.body | startswith("## Documentation sync check")) | .id' \
+                 > /tmp/existing_comment_id.txt
 
-               Use this structure in the comment body:
+               If a comment ID was found (file is non-empty), update it in place:
+               gh api --method PATCH \
+                 repos/${{ github.repository }}/issues/comments/$(cat /tmp/existing_comment_id.txt) \
+                 -f body="<comment body>"
+
+               If no comment ID was found, create a new one:
+               gh pr comment ${{ github.event.pull_request.number }} --body "<comment body>"
+
+               Use this structure for <comment body>:
                ## Documentation sync check
 
                ### Doxygen
