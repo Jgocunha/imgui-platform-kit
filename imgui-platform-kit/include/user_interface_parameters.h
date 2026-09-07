@@ -97,18 +97,19 @@ namespace imgui_kit
 	/**
 	 * @brief Visual style of the user interface (theme and window styling).
 	 *
-	 * @warning apply() currently only applies #theme. The remaining fields
-	 * (#windowBgColor, #windowPadding, #windowRounding, #transparency,
-	 * #textColor) are stored but not yet forwarded to ImGui::GetStyle().
+	 * apply() selects #theme, then forwards geometry and colour fields to
+	 * ImGui::GetStyle() (#windowBgColor, #windowPadding, #framePadding,
+	 * #windowRounding, #transparency, #textColor).
 	 */
 	struct StyleParameters
 	{
 		Theme theme;          ///< Colour theme applied to the interface (see imgui_kit::Theme).
-		ImVec4 windowBgColor; ///< Background colour of the main window. @warning Not yet applied by apply().
-		ImVec2 windowPadding; ///< Padding within windows, in pixels. @warning Not yet applied by apply().
-		float windowRounding; ///< Corner rounding radius of windows, in pixels. @warning Not yet applied by apply().
-		float transparency;   ///< Overall window transparency (alpha), 0.0-1.0. @warning Not yet applied by apply().
-		ImVec4 textColor;     ///< Default text colour. @warning Not yet applied by apply().
+		ImVec4 windowBgColor; ///< Background colour of the main window.
+		ImVec2 windowPadding; ///< Padding within windows, in pixels.
+		ImVec2 framePadding;  ///< Padding within framed widgets (buttons, inputs), in pixels.
+		float windowRounding; ///< Corner rounding radius of windows, in pixels.
+		float transparency;   ///< Overall window transparency (alpha), 0.0-1.0.
+		ImVec4 textColor;     ///< Default text colour.
 
 		/// Constructs style parameters with the default theme.
 		StyleParameters();
@@ -126,7 +127,7 @@ namespace imgui_kit
 
 		/**
 		 * @brief Applies the style to the current ImGui context.
-		 * @warning Only #theme is applied; the other fields are currently ignored.
+		 * Applies #theme, then forwards geometry and colour fields (including frame padding) to ImGui::GetStyle().
 		 */
 		void apply() const;
 	};
@@ -135,7 +136,7 @@ namespace imgui_kit
 	 * @brief Window icon settings.
 	 *
 	 * On Windows an @c .ico file is expected; on Linux a @c .png file.
-	 * @note On macOS setting a window icon is a no-op (GLFW limitation) — the
+	 * @note On macOS setting a window icon is a no-op (GLFW limitation) â€” the
 	 * application icon comes from the app bundle instead.
 	 */
 	struct IconParameters
