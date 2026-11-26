@@ -30,13 +30,15 @@ set(IMGUI_PLATFORM_KIT_ADDITIONAL_FILES_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/sha
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# VCPKG integration
-if(NOT DEFINED ENV{VCPKG_ROOT})
-    message(FATAL_ERROR "ERROR: This project requires VCPKG.\n")
+# VCPKG integration. vcpkg's own port builds, and most IDEs, pass vcpkg's toolchain as
+# CMAKE_TOOLCHAIN_FILE; otherwise it is loaded from VCPKG_ROOT.
+if(NOT CMAKE_TOOLCHAIN_FILE MATCHES "vcpkg\\.cmake$")
+    if(NOT DEFINED ENV{VCPKG_ROOT})
+        message(FATAL_ERROR "ERROR: This project requires VCPKG. Set VCPKG_ROOT, or pass "
+            "-DCMAKE_TOOLCHAIN_FILE=<vcpkg root>/scripts/buildsystems/vcpkg.cmake.\n")
+    endif()
+    include($ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
 endif()
-
-set(VCPKG_ROOT $ENV{VCPKG_ROOT})
-include(${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
 
 # Project directory definitions
 set(PROJECT_DIR "${CMAKE_SOURCE_DIR}")
