@@ -9,7 +9,11 @@ on:
 jobs:
   build-linux:
     name: Build on Linux
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-binary-cache
 
     steps:
       - name: Checkout repository
@@ -31,39 +35,10 @@ jobs:
             ninja-build
 
       - name: Set up vcpkg
-        run: |
-          git clone https://github.com/microsoft/vcpkg.git "$HOME/vcpkg"
-          "$HOME/vcpkg/bootstrap-vcpkg.sh" -disableMetrics
-          echo "VCPKG_ROOT=$HOME/vcpkg" >> $GITHUB_ENV
-
-      - name: Cache vcpkg packages
-        uses: actions/cache@v4
+        id: vcpkg
+        uses: ./.github/actions/setup-vcpkg
         with:
-          path: |
-            ${{ env.VCPKG_ROOT }}/installed
-            ${{ env.VCPKG_ROOT }}/packages
-          key: vcpkg-linux-x64-linux-${{ hashFiles('**/CMakeLists.txt') }}
-          restore-keys: |
-            vcpkg-linux-x64-linux-
-
-      - name: Install vcpkg dependencies
-        run: |
-          for attempt in 1 2 3; do
-            "$VCPKG_ROOT/vcpkg" install \
-              "imgui[docking-experimental,core,opengl3-binding,glfw-binding]:x64-linux" \
-              "implot:x64-linux" \
-              "imgui-node-editor:x64-linux" && break
-            echo "Attempt $attempt failed, retrying in 15s..."
-            sleep 15
-          done
-
-      - name: Install Catch2
-        run: |
-          for attempt in 1 2 3; do
-            $VCPKG_ROOT/vcpkg install catch2:x64-linux && break
-            echo "Attempt $attempt failed, retrying in 15s..."
-            sleep 15
-          done
+          triplet: x64-linux
 
       - name: Configure CMake
         working-directory: imgui-platform-kit
@@ -72,6 +47,13 @@ jobs:
             -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" \
             -DVCPKG_TARGET_TRIPLET=x64-linux \
             -DCMAKE_BUILD_TYPE=Release
+
+      - name: Save vcpkg binary cache
+        if: ${{ !cancelled() && steps.vcpkg.outcome == 'success' }}
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
+          key: ${{ steps.vcpkg.outputs.cache-key-prefix }}${{ hashFiles('vcpkg-binary-cache/**') }}
 
       - name: Build
         working-directory: imgui-platform-kit
