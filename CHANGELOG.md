@@ -15,11 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pre-filled issue backlog in `.github/issues/` documenting 5 known bugs and 7 planned features.
 - Gemini-powered issue triage workflow (`gemini-issue-triage.yml`): auto-labels and welcomes new issues, detects duplicates, and validates model output before auto-closing.
 - Documentation sync workflow (`gemini-doc-sync.yml`): audits Doxygen, README, and CHANGELOG on PRs touching `include/`; updates existing comment in place on re-runs.
-- Monthly vcpkg maintenance workflow (`vcpkg-maintenance.yml`): creates a version report issue on the 1st of each month for `imgui`, `implot`, `imgui-node-editor`, and `catch2`.
+- Monthly vcpkg maintenance workflow (`vcpkg-maintenance.yml`): creates a version report issue on the 1st of each month for `imgui`, `implot`, `imgui-node-editor`, `glfw3` and `catch2`.
 - `.coderabbit.yaml`: CodeRabbit auto-review with C++20 style, platform guard, Doxygen, and test coverage rules.
 
 ### Changed
-- Dependencies are declared in a vcpkg manifest, `imgui-platform-kit/vcpkg.json`, and pinned by its `builtin-baseline` to vcpkg commit `0699a19d0c` (imgui 1.92.9, implot 1.0, imgui-node-editor 0.9.3, glfw3 3.5.1, catch2 3.16.0). The first configure installs them into `<build tree>/vcpkg_installed/`; the build scripts no longer run `vcpkg install` (`build.sh` no longer needs `sudo` for it). Previously every build took whatever vcpkg HEAD offered, so an upstream release could change a build that changed nothing. `VCPKG_ROOT` must now be a git clone of vcpkg that contains the baseline commit; a vcpkg unpacked from a release tarball, as the README used to suggest for Linux, no longer works.
+- Dependencies are declared in a vcpkg manifest, `imgui-platform-kit/vcpkg.json`, and pinned by its `builtin-baseline` to vcpkg commit `0699a19d0c` (imgui 1.92.9, implot 1.0, imgui-node-editor 0.9.3, glfw3 3.5.1, catch2 3.16.0). The first configure installs them into `<build tree>/vcpkg_installed/`; the build scripts no longer run `vcpkg install` (`build.sh` no longer needs `sudo` for it). Previously every build took whatever vcpkg HEAD offered, so an upstream release could change a build that changed nothing. `VCPKG_ROOT` must now be a git clone of vcpkg at the baseline commit or newer; a vcpkg unpacked from a release tarball, as the README used to suggest for Linux, no longer works. Delete existing `build/` directories once: a tree configured before the manifest existed keeps vcpkg's classic mode cached.
 - CI: runner images pinned (`ubuntu-24.04`, `windows-2025-vs2026`, `macos-26`) instead of `*-latest`; vcpkg cloned at the pinned baseline; vcpkg's binary cache is cached instead of its `installed/` and `packages/` trees. The monthly vcpkg report lists each package's pinned version next to the latest one.
 - The library itself is unchanged; projects consuming it through `find_package(imgui-platform-kit)` need no changes.
 
@@ -87,6 +87,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Global window flag variables converted from global to `inline constexpr` for better linkage.
 - SRV descriptor heap management refactored into dedicated helper functions in the DX12 backend.
 
-[Unreleased]: https://github.com/Jgocunha/imgui-platform-kit/compare/v2.0.1...HEAD
+[Unreleased]: https://github.com/Jgocunha/imgui-platform-kit/compare/v2.1.0...HEAD
+[2.1.0]: https://github.com/Jgocunha/imgui-platform-kit/compare/v2.0.1...v2.1.0
 [2.0.1]: https://github.com/Jgocunha/imgui-platform-kit/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/Jgocunha/imgui-platform-kit/releases/tag/v2.0.0
