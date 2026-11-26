@@ -14,14 +14,7 @@ if [ -z '$VCPKG_ROOT' ]; then
     exit 1
 fi
 
-# Install packages using Vcpkg
-sudo vcpkg install imgui[docking-experimental,core,opengl3-binding,glfw-binding]
-sudo vcpkg install implot
-sudo vcpkg install imgui-node-editor
-sudo vcpkg install catch2
-
-# Integrate install might require elevation (sudo)
-#sudo vcpkg integrate install
+# Dependencies are declared in vcpkg.json and installed by CMake on the first configure.
 
 # Build your project 
 cd "$PROJECT_ROOT/build"

@@ -12,17 +12,7 @@ IF NOT DEFINED VCPKG_ROOT (
     exit /b 1
 )
 
-:: Install catch2 using Vcpkg
-"%VCPKG_ROOT%\vcpkg.exe" install catch2:x64-windows
-
-:: Install imgui using Vcpkg
-"%VCPKG_ROOT%\vcpkg.exe" install imgui[docking-experimental,core,dx12-binding,win32-binding]:x64-windows
-
-:: Install implot using Vcpkg
-"%VCPKG_ROOT%\vcpkg.exe" install implot:x64-windows
-
-:: Install imgui-node-editor using Vcpkg
-"%VCPKG_ROOT%\vcpkg.exe" install imgui-node-editor:x64-windows
+:: Dependencies are declared in vcpkg.json and installed by CMake on the first configure.
 
 :: Using MSBuild may require elevation
 "%VCPKG_ROOT%\vcpkg.exe" integrate install

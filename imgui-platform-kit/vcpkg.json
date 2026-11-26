@@ -1,0 +1,20 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "builtin-baseline": "0699a19d0c6386247ce50d4dedbb8217d484d536",
+  "dependencies": [
+    {
+      "name": "imgui",
+      "features": [
+        "docking-experimental",
+        { "name": "dx12-binding", "platform": "windows" },
+        { "name": "win32-binding", "platform": "windows" },
+        { "name": "glfw-binding", "platform": "!windows" },
+        { "name": "opengl3-binding", "platform": "!windows" }
+      ]
+    },
+    { "name": "glfw3", "platform": "!windows" },
+    "implot",
+    "imgui-node-editor",
+    "catch2"
+  ]
+}

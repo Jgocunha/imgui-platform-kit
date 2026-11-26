@@ -39,6 +39,10 @@ git clone https://github.com/microsoft/vcpkg.git "$HOME/vcpkg"
 export VCPKG_ROOT="$HOME/vcpkg"   # add to ~/.zshrc for persistence
 ```
 
+vcpkg must be a git clone: the dependency versions are pinned by `builtin-baseline` in
+[`vcpkg.json`](../vcpkg.json), and vcpkg reads them from its own git history. An existing
+clone older than that commit needs `git -C "$VCPKG_ROOT" fetch origin` first.
+
 ## 3. Build
 
 Run the script for your platform from inside the `imgui-platform-kit/` subdirectory:
@@ -62,6 +66,8 @@ cd imgui-platform-kit
 ```
 
 The macOS script auto-detects your architecture and selects the correct vcpkg triplet (`arm64-osx` for Apple Silicon, `x64-osx` for Intel).
+
+The first configure installs every dependency (`imgui`, `implot`, `imgui-node-editor`, `glfw3`, `catch2`) from `vcpkg.json` into `build/<tree>/vcpkg_installed/`, which takes a while; later builds reuse it.
 
 ## 4. Run the example
 

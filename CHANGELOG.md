@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Monthly vcpkg maintenance workflow (`vcpkg-maintenance.yml`): creates a version report issue on the 1st of each month for `imgui`, `implot`, `imgui-node-editor`, and `catch2`.
 - `.coderabbit.yaml`: CodeRabbit auto-review with C++20 style, platform guard, Doxygen, and test coverage rules.
 
+### Changed
+- Dependencies are declared in a vcpkg manifest, `imgui-platform-kit/vcpkg.json`, and pinned by its `builtin-baseline` to vcpkg commit `0699a19d0c` (imgui 1.92.9, implot 1.0, imgui-node-editor 0.9.3, glfw3 3.5.1, catch2 3.16.0). The first configure installs them into `<build tree>/vcpkg_installed/`; the build scripts no longer run `vcpkg install` (`build.sh` no longer needs `sudo` for it). Previously every build took whatever vcpkg HEAD offered, so an upstream release could change a build that changed nothing. `VCPKG_ROOT` must now be a git clone of vcpkg that contains the baseline commit; a vcpkg unpacked from a release tarball, as the README used to suggest for Linux, no longer works.
+- CI: runner images pinned (`ubuntu-24.04`, `windows-2025-vs2026`, `macos-26`) instead of `*-latest`; vcpkg cloned at the pinned baseline; vcpkg's binary cache is cached instead of its `installed/` and `packages/` trees. The monthly vcpkg report lists each package's pinned version next to the latest one.
+- The library itself is unchanged; projects consuming it through `find_package(imgui-platform-kit)` need no changes.
+
 ### Fixed
 - CMakeLists version bumped from `1.0` to `2.0.0`; added `VERSION_PATCH` variable and compile definition to match the v2.0.0 git tag.
 
