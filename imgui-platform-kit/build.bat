@@ -23,19 +23,28 @@ mkdir %PROJECT_ROOT%\build\x64-debug
 
 :: Run CMake
 cmake -G "Visual Studio 17 2022" -A x64 -S "%PROJECT_ROOT%" -B "%PROJECT_ROOT%\build\x64-release" -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake" -DCMAKE_BUILD_TYPE=Release
+if errorlevel 1 goto :failed
 
 :: Build your project using the generated build files 
 cmake --build "%PROJECT_ROOT%\build\x64-release" --config Release
+if errorlevel 1 goto :failed
 
 :: Run CMake
 cmake -G "Visual Studio 17 2022" -A x64 -S "%PROJECT_ROOT%" -B "%PROJECT_ROOT%\build\x64-debug" -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake" -DCMAKE_BUILD_TYPE=Debug
+if errorlevel 1 goto :failed
 
 :: Build your project using the generated build files 
 cmake --build "%PROJECT_ROOT%\build\x64-debug" --config Debug
+if errorlevel 1 goto :failed
 
 
 :: Optionally, you can run your executable here if applicable
 
+pause
+exit /b 0
+
+:failed
+echo ERROR: the build failed.
 pause
 exit /b 1
 

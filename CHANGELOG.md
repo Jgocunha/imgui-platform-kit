@@ -25,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - CMakeLists version bumped from `1.0` to `2.0.0`; added `VERSION_PATCH` variable and compile definition to match the v2.0.0 git tag.
+- The CMakeLists no longer requires `VCPKG_ROOT` in the environment when vcpkg's toolchain is passed as `CMAKE_TOOLCHAIN_FILE`; it only falls back to `VCPKG_ROOT` when no vcpkg toolchain was given. vcpkg clears `VCPKG_ROOT` for port builds on Windows, so the kit could not be built as a vcpkg port there without a workaround in the portfile.
+- `build.sh` tested the literal string `'$VCPKG_ROOT'`, so it never stopped when the variable was unset. `build.sh` and `build.bat` exited with code 1 even after a successful build, and `build_macos.sh` exited with 0 after a failed one; all three now exit with the build's result.
 
 ---
 

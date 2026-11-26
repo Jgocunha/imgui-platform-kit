@@ -31,9 +31,9 @@ cd "$PROJECT_ROOT/build/macos-release"
 cmake ../.. \
     -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" \
     -DVCPKG_TARGET_TRIPLET="$VCPKG_TRIPLET" \
-    -DCMAKE_BUILD_TYPE=Release
-
+    -DCMAKE_BUILD_TYPE=Release &&
 make -j$(sysctl -n hw.logicalcpu)
+status=$?
 
 read -p "Press any key to continue... " -n1 -s
-exit 0
+exit $status
