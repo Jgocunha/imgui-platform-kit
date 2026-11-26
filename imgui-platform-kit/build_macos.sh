@@ -22,11 +22,7 @@ fi
 
 echo "Using vcpkg triplet: $VCPKG_TRIPLET"
 
-# Install packages using vcpkg
-"$VCPKG_ROOT/vcpkg" install "imgui[docking-experimental,core,opengl3-binding,glfw-binding]:$VCPKG_TRIPLET"
-"$VCPKG_ROOT/vcpkg" install "implot:$VCPKG_TRIPLET"
-"$VCPKG_ROOT/vcpkg" install "imgui-node-editor:$VCPKG_TRIPLET"
-"$VCPKG_ROOT/vcpkg" install "catch2:$VCPKG_TRIPLET"
+# Dependencies are declared in vcpkg.json and installed by CMake on the first configure.
 
 # Create and enter build directory
 mkdir -p "$PROJECT_ROOT/build/macos-release"
@@ -35,9 +31,9 @@ cd "$PROJECT_ROOT/build/macos-release"
 cmake ../.. \
     -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" \
     -DVCPKG_TARGET_TRIPLET="$VCPKG_TRIPLET" \
-    -DCMAKE_BUILD_TYPE=Release
-
+    -DCMAKE_BUILD_TYPE=Release &&
 make -j$(sysctl -n hw.logicalcpu)
+status=$?
 
 read -p "Press any key to continue... " -n1 -s
-exit 0
+exit $status

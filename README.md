@@ -65,13 +65,17 @@ Included in the project are platform-specific build and install scripts to simpl
 | Linux | `build.sh` | `install.sh` |
 | macOS | `build_macos.sh` | — |
 
-- **Build scripts**: Compile the project and install vcpkg dependencies automatically.
+- **Build scripts**: Compile the project. Its dependencies are declared in [`imgui-platform-kit/vcpkg.json`](imgui-platform-kit/vcpkg.json) and installed by CMake on the first configure, at the versions pinned there by `builtin-baseline`.
 - **Install scripts**: Install the built library to a specified location using CMake.
+
+If you built the kit before 2.1.0, delete your `build/` directory first. A build tree
+configured before `vcpkg.json` existed has vcpkg's classic mode cached, and keeps skipping
+the manifest install on every later configure.
 
 **Linux note:**
 You might have to:
 1. Create a build directory inside the project folder: `mkdir build`
-2. Set `VCPKG_ROOT` as an environment variable: `export VCPKG_ROOT=/opt/vcpkg` (see *Installing vcpkg* below).
+2. Set `VCPKG_ROOT` as an environment variable: `export VCPKG_ROOT="$HOME/vcpkg"` (see *Installing vcpkg* below).
 
 Before running `build.sh`.
 
@@ -153,20 +157,24 @@ brew install cmake
 
 ### Installing vcpkg
 
+vcpkg must be a **git clone**, not an unpacked release tarball: the versions pinned by
+`builtin-baseline` in `vcpkg.json` are read from vcpkg's git history and checked-out files,
+so the clone must be at the pinned baseline commit or newer. If yours is older, run
+`git -C "$VCPKG_ROOT" fetch origin`, check out that commit (or a newer one) with
+`git -C "$VCPKG_ROOT" checkout <builtin-baseline>`, and run its bootstrap script again.
+
+On Linux, vcpkg builds GLFW's X11 dependencies from source, and one of them
+(`pthread-stubs`) needs the autotools, hence `autoconf`, `autoconf-archive`, `automake`
+and `libtool` below.
+
 **Linux (Ubuntu/Debian):**
 
 ```bash
 sudo apt update
-sudo apt install -y zip unzip build-essential pkg-config
-wget -qO vcpkg.tar.gz https://github.com/microsoft/vcpkg/archive/master.tar.gz
-
-sudo mkdir /opt/vcpkg
-sudo tar xf vcpkg.tar.gz --strip-components=1 -C /opt/vcpkg
-
-sudo /opt/vcpkg/bootstrap-vcpkg.sh
-sudo ln -s /opt/vcpkg/vcpkg /usr/local/bin/vcpkg
-
-vcpkg version
+sudo apt install -y zip unzip build-essential pkg-config git \
+    autoconf autoconf-archive automake libtool
+git clone https://github.com/microsoft/vcpkg.git "$HOME/vcpkg"
+"$HOME/vcpkg/bootstrap-vcpkg.sh" -disableMetrics
 ```
 
 **macOS:**
@@ -179,8 +187,7 @@ Add `VCPKG_ROOT` to your environment variables.
 
 To set it for the current shell session:
 ```bash
-export VCPKG_ROOT="/opt/vcpkg"      # Linux
-export VCPKG_ROOT="$HOME/vcpkg"     # macOS
+export VCPKG_ROOT="$HOME/vcpkg"
 ```
 To set it permanently, add the export line to your `~/.bashrc` (Linux) or `~/.zshrc` (macOS) and run `source ~/.bashrc` / `source ~/.zshrc`.
 

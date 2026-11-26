@@ -5,7 +5,7 @@
 # Project
 #---------------------------------------------------------------------------
 PROJECT_NAME           = "imgui-platform-kit"
-PROJECT_NUMBER         = 2.0.0
+PROJECT_NUMBER         = 2.1.0
 PROJECT_BRIEF          = "Cross-platform Dear ImGui application framework"
 OUTPUT_DIRECTORY       = docs
 

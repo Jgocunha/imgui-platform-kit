@@ -9,6 +9,11 @@
 
 ## Manual CMake configure + build
 
+Dependencies are declared in [`vcpkg.json`](../vcpkg.json). Passing the vcpkg toolchain is
+enough: the first configure of a build tree installs them into
+`<build tree>/vcpkg_installed/`, at the versions of the vcpkg commit pinned there as
+`builtin-baseline`. To upgrade, change `builtin-baseline` to a newer vcpkg commit.
+
 ### Windows
 
 ```bat
@@ -79,12 +84,12 @@ cd build/coverage
 ctest --output-on-failure
 
 lcov --capture --directory . --output-file coverage.info
-lcov --remove coverage.info '/usr/*' "$HOME/vcpkg/*" '*/tests/*' '*/examples/*' \
+lcov --remove coverage.info '/usr/*' '*/vcpkg_installed/*' '*/tests/*' '*/examples/*' \
      --output-file coverage.info --ignore-errors unused
 lcov --list coverage.info
 ```
 
-The `IMGUI_PLATFORM_KIT_COVERAGE` CMake option enables `--coverage` for both GCC and Clang. The `lcov` commands above use GCC's `gcov` by default. With Clang, pass `--gcov-tool llvm-cov gcov` to `lcov`, or use `llvm-cov show` directly. The CI coverage workflow runs on GCC (`ubuntu-latest`).
+The `IMGUI_PLATFORM_KIT_COVERAGE` CMake option enables `--coverage` for both GCC and Clang. The `lcov` commands above use GCC's `gcov` by default. With Clang, pass `--gcov-tool llvm-cov gcov` to `lcov`, or use `llvm-cov show` directly. The CI coverage workflow runs on GCC (`ubuntu-24.04`).
 
 ## Installing
 

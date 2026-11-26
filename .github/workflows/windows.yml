@@ -9,46 +9,27 @@ on:
 jobs:
   build-windows:
     name: Build on Windows
-    runs-on: windows-latest
+    runs-on: windows-2025-vs2026
+
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-binary-cache
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Normalize paths for bash
+        shell: bash
+        run: |
+          echo "VCPKG_ROOT=$(echo "$VCPKG_ROOT" | tr '\\' '/')" >> "$GITHUB_ENV"
+          echo "VCPKG_DEFAULT_BINARY_CACHE=$(echo "$VCPKG_DEFAULT_BINARY_CACHE" | tr '\\' '/')" >> "$GITHUB_ENV"
+
       - name: Set up vcpkg
-        run: |
-          git clone https://github.com/microsoft/vcpkg.git "$env:USERPROFILE\vcpkg"
-          & "$env:USERPROFILE\vcpkg\bootstrap-vcpkg.bat" -disableMetrics
-          echo "VCPKG_ROOT=$env:USERPROFILE\vcpkg" >> $env:GITHUB_ENV
-
-      - name: Cache vcpkg packages
-        uses: actions/cache@v4
+        id: vcpkg
+        uses: ./.github/actions/setup-vcpkg
         with:
-          path: |
-            ${{ env.VCPKG_ROOT }}/installed
-            ${{ env.VCPKG_ROOT }}/packages
-          key: vcpkg-windows-x64-windows-${{ hashFiles('**/CMakeLists.txt') }}
-          restore-keys: |
-            vcpkg-windows-x64-windows-
-
-      - name: Install vcpkg dependencies
-        run: |
-          for ($i = 1; $i -le 3; $i++) {
-            & "$env:VCPKG_ROOT\vcpkg" install `
-              "imgui[docking-experimental,core,dx12-binding,win32-binding]:x64-windows" `
-              "implot:x64-windows" `
-              "imgui-node-editor:x64-windows"
-            if ($?) { break }
-            if ($i -lt 3) { Write-Host "Attempt $i failed, retrying in 15s..."; Start-Sleep 15 }
-          }
-
-      - name: Install Catch2
-        run: |
-          for ($i = 1; $i -le 3; $i++) {
-            & "$env:VCPKG_ROOT\vcpkg" install catch2:x64-windows
-            if ($?) { break }
-            if ($i -lt 3) { Write-Host "Attempt $i failed, retrying in 15s..."; Start-Sleep 15 }
-          }
+          triplet: x64-windows
 
       - name: Configure CMake
         working-directory: imgui-platform-kit
@@ -57,6 +38,13 @@ jobs:
             -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" `
             -DVCPKG_TARGET_TRIPLET=x64-windows `
             -DCMAKE_BUILD_TYPE=Release
+
+      - name: Save vcpkg binary cache
+        if: ${{ !cancelled() && steps.vcpkg.outcome == 'success' }}
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
+          key: ${{ steps.vcpkg.outputs.cache-key-prefix }}${{ hashFiles('vcpkg-binary-cache/**') }}
 
       - name: Build
         working-directory: imgui-platform-kit
