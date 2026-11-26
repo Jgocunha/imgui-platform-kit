@@ -31,6 +31,10 @@ jobs:
             libxcursor-dev \
             libxi-dev \
             libxext-dev \
+            autoconf \
+            autoconf-archive \
+            automake \
+            libtool \
             pkg-config \
             ninja-build
 
