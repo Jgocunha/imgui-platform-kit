@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [2.1.0] — 2026-11-26
+
 ### Added
 - Pre-filled issue backlog in `.github/issues/` documenting 5 known bugs and 7 planned features.
 - Gemini-powered issue triage workflow (`gemini-issue-triage.yml`): auto-labels and welcomes new issues, detects duplicates, and validates model output before auto-closing.
