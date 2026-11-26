@@ -41,8 +41,9 @@ export VCPKG_ROOT="$HOME/vcpkg"   # add to ~/.zshrc for persistence
 
 vcpkg must be a git clone: the dependency versions are pinned by `builtin-baseline` in
 [`vcpkg.json`](../vcpkg.json), and vcpkg reads them from its git history and checked-out
-files. An existing clone older than that commit needs `git -C "$VCPKG_ROOT" pull` and a
-fresh bootstrap first. A `build/` directory configured before 2.1.0 has to be deleted, since
+files. An existing clone older than that commit has to be moved to it (or a newer one)
+first: `git -C "$VCPKG_ROOT" fetch origin`, `git -C "$VCPKG_ROOT" checkout <builtin-baseline>`,
+then bootstrap it again. A `build/` directory configured before 2.1.0 has to be deleted, since
 it keeps vcpkg's classic mode cached.
 
 ## 3. Build

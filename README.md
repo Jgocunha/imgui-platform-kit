@@ -159,8 +159,9 @@ brew install cmake
 
 vcpkg must be a **git clone**, not an unpacked release tarball: the versions pinned by
 `builtin-baseline` in `vcpkg.json` are read from vcpkg's git history and checked-out files,
-so the clone must be at the pinned baseline commit or newer. If yours is older, update it
-with `git -C "$VCPKG_ROOT" pull` and run its bootstrap script again.
+so the clone must be at the pinned baseline commit or newer. If yours is older, run
+`git -C "$VCPKG_ROOT" fetch origin`, check out that commit (or a newer one) with
+`git -C "$VCPKG_ROOT" checkout <builtin-baseline>`, and run its bootstrap script again.
 
 On Linux, vcpkg builds GLFW's X11 dependencies from source, and one of them
 (`pthread-stubs`) needs the autotools, hence `autoconf`, `autoconf-archive`, `automake`
