@@ -15,6 +15,7 @@ set(test_sources
     test_theme_selector.cpp
     test_parameters_edge_cases.cpp
     test_template_window.cpp
+    test_user_interface_initialize.cpp
 )
 
 add_executable(imgui-platform-kit-tests ${test_sources})

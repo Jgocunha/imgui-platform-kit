@@ -33,10 +33,7 @@ namespace imgui_kit
     {
         glfwSetErrorCallback(glfw_error_callback);
         if (!glfwInit())
-        {
-            std::cerr << "Failed to initialize GLFW." << std::endl;
-            return;
-        }
+            throw std::runtime_error("Failed to initialize GLFW.");
 
             // Decide GL+GLSL versions
         #if defined(IMGUI_IMPL_OPENGL_ES2)
@@ -70,7 +67,7 @@ namespace imgui_kit
         if (window == nullptr)
         {
             glfwTerminate();
-            return;
+            throw std::runtime_error("Failed to create the GLFW window.");
         }
         glfwSetWindowPos(window, parameters.windowParameters.startPosX,
             parameters.windowParameters.startPosY);

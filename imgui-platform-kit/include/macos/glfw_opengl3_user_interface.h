@@ -79,6 +79,15 @@ namespace imgui_kit
         explicit UserInterface(UserInterfaceParameters parameters);
         ~UserInterface() = default;
 
+        /**
+         * @brief Creates the GLFW window and OpenGL context, sets up the ImGui and
+         * ImPlot contexts, and applies the configured style, fonts, icon and
+         * background image.
+         *
+         * Must be called once before render().
+         * @throws std::runtime_error if GLFW cannot be initialized (for example,
+         * when there is no display) or cannot create the window.
+         */
         void initialize();
         void render();
         void shutdown() const;

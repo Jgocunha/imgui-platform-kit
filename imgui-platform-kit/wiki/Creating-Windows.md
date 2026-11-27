@@ -88,6 +88,8 @@ userInterface.shutdown();
 
 `render()` processes OS events, begins an ImGui frame, calls `render()` on every registered window, and presents the frame. `isShutdownRequested()` returns `true` when the user closes the OS window.
 
+On Linux and macOS, `initialize()` throws `std::runtime_error` when GLFW cannot start (for example, when there is no display) or cannot create the window. Don't call `render()` or `shutdown()` after it throws.
+
 ---
 
 ## TemplateWindow
