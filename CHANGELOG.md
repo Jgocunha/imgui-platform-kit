@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- On Linux and macOS, `UserInterface::initialize()` now throws `std::runtime_error` when GLFW cannot be initialized (`"Failed to initialize GLFW."`) or cannot create the window (`"Failed to create the GLFW window."`). It used to return with no window and no ImGui context, so the next `render()` segfaulted on the null window. This crashed dynamic-neural-field-composer's headless example smoke-run whenever the X connection was refused.
+
 ---
 
 ## [2.1.0] — 2026-11-26

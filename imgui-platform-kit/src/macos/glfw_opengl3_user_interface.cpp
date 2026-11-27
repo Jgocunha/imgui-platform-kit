@@ -33,10 +33,7 @@ namespace imgui_kit
     {
         glfwSetErrorCallback(glfw_error_callback);
         if (!glfwInit())
-        {
-            std::cerr << "Failed to initialize GLFW." << std::endl;
-            return;
-        }
+            throw std::runtime_error("Failed to initialize GLFW.");
 
         // GL 3.2 + GLSL 150 (macOS requires Core Profile with forward compatibility)
         const char* glsl_version = "#version 150";
@@ -52,7 +49,7 @@ namespace imgui_kit
         if (window == nullptr)
         {
             glfwTerminate();
-            return;
+            throw std::runtime_error("Failed to create the GLFW window.");
         }
         glfwSetWindowPos(window, parameters.windowParameters.startPosX,
             parameters.windowParameters.startPosY);
