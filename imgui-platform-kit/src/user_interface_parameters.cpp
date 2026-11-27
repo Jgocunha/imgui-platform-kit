@@ -1,4 +1,4 @@
-#include "user_interface_parameters.h"
+﻿#include "user_interface_parameters.h"
 #include "user_interface_parameters.h"
 
 #include "colour_palette.h"
@@ -130,6 +130,7 @@ namespace imgui_kit
 		windowBgColor = colours::DarkGray;
 		windowRounding = 5.0f;
 		windowPadding = ImVec2(8.0f, 8.0f);
+		framePadding = ImVec2(4.0f, 3.0f);
 		transparency = 1.0f;
 		textColor = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 	}
@@ -140,6 +141,7 @@ namespace imgui_kit
 		windowBgColor = colours::DarkGray;
 		windowRounding = 5.0f;
 		windowPadding = ImVec2(8.0f, 8.0f);
+		framePadding = ImVec2(4.0f, 3.0f);
 		transparency = 1.0f;
 		textColor = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 	}
@@ -149,6 +151,7 @@ namespace imgui_kit
 	{
 		windowRounding = 5.0f;
 		windowPadding = ImVec2(8.0f, 8.0f);
+		framePadding = ImVec2(4.0f, 3.0f);
 		transparency = 1.0f;
 		textColor = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 	}
@@ -156,6 +159,14 @@ namespace imgui_kit
 	void StyleParameters::apply() const
 	{
 		themes[theme]();
+
+		ImGuiStyle& style = ImGui::GetStyle();
+		style.WindowRounding = windowRounding;
+		style.WindowPadding = windowPadding;
+		style.FramePadding = framePadding;
+		style.Alpha = transparency;
+		style.Colors[ImGuiCol_WindowBg] = windowBgColor;
+		style.Colors[ImGuiCol_Text] = textColor;
 	}
 
 	IconParameters::IconParameters(std::string path, int width, int height)

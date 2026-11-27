@@ -75,11 +75,12 @@ StyleParameters(Theme theme, ImVec4 bgColor);
 | `theme` | `Theme` | One of the 39 available themes (see [Themes and Colours](Themes-and-Colours)) |
 | `windowBgColor` | `ImVec4` | Background colour of ImGui windows |
 | `windowPadding` | `ImVec2` | Inner padding |
+| `framePadding` | `ImVec2` | Padding inside framed widgets (buttons, inputs) |
 | `windowRounding` | `float` | Corner rounding radius |
 | `transparency` | `float` | Window transparency (`1.0` = fully opaque, `0.0` = fully transparent) |
 | `textColor` | `ImVec4` | Default text colour |
 
-> **Note:** `apply()` currently only applies the selected `theme`. The fields `windowBgColor`, `windowPadding`, `windowRounding`, `transparency`, and `textColor` are stored but not yet forwarded to `ImGui::GetStyle()`. To apply them yourself, call `ImGui::GetStyle()` directly after `userInterface.initialize()`.
+> **Note:** `StyleParameters::apply()` applies the selected `theme`, then forwards `windowBgColor`, `windowPadding`, `framePadding`, `windowRounding`, `transparency`, and `textColor` to `ImGui::GetStyle()`.
 
 ---
 
