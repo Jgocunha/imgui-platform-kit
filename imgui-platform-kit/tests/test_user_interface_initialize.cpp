@@ -15,37 +15,40 @@ using namespace imgui_kit;
 
 namespace
 {
-    class ScopedUnsetEnvironmentVariable
+    // Sets an environment variable, or unsets it when value is nullptr, until destroyed.
+    class ScopedEnvironmentVariable
     {
     public:
-        explicit ScopedUnsetEnvironmentVariable(const char* name)
+        ScopedEnvironmentVariable(const char* name, const char* value)
             : name(name)
         {
-            if (const char* value = std::getenv(name))
-                savedValue = value;
-            unsetenv(name);
+            if (const char* current = std::getenv(name))
+                savedValue = current;
+            assign(value);
         }
 
-        ~ScopedUnsetEnvironmentVariable()
+        ~ScopedEnvironmentVariable()
         {
-            if (savedValue)
-                setenv(name, savedValue->c_str(), 1);
+            assign(savedValue ? savedValue->c_str() : nullptr);
         }
 
-        ScopedUnsetEnvironmentVariable(const ScopedUnsetEnvironmentVariable&) = delete;
-        ScopedUnsetEnvironmentVariable& operator=(const ScopedUnsetEnvironmentVariable&) = delete;
-        ScopedUnsetEnvironmentVariable(ScopedUnsetEnvironmentVariable&&) = delete;
-        ScopedUnsetEnvironmentVariable& operator=(ScopedUnsetEnvironmentVariable&&) = delete;
+        ScopedEnvironmentVariable(const ScopedEnvironmentVariable&) = delete;
+        ScopedEnvironmentVariable& operator=(const ScopedEnvironmentVariable&) = delete;
+        ScopedEnvironmentVariable(ScopedEnvironmentVariable&&) = delete;
+        ScopedEnvironmentVariable& operator=(ScopedEnvironmentVariable&&) = delete;
 
     private:
+        void assign(const char* value) const
+        {
+            if (value)
+                setenv(name, value, 1);
+            else
+                unsetenv(name);
+        }
+
         const char* name;
         std::optional<std::string> savedValue;
     };
-
-    bool isDisplayAvailable()
-    {
-        return std::getenv("DISPLAY") != nullptr || std::getenv("WAYLAND_DISPLAY") != nullptr;
-    }
 
     // Explicit dimensions keep WindowParameters from querying the monitor itself.
     UserInterfaceParameters parametersWithExplicitWindowSize()
@@ -56,8 +59,11 @@ namespace
 
 TEST_CASE("UserInterface::initialize throws when GLFW finds no display", "[user_interface][initialize]")
 {
-    const ScopedUnsetEnvironmentVariable display("DISPLAY");
-    const ScopedUnsetEnvironmentVariable waylandDisplay("WAYLAND_DISPLAY");
+    const ScopedEnvironmentVariable display("DISPLAY", nullptr);
+    // An unset WAYLAND_DISPLAY makes libwayland fall back to the default socket, so
+    // point it at one that does not exist instead.
+    const ScopedEnvironmentVariable waylandDisplay("WAYLAND_DISPLAY", "imgui-kit-test-no-such-display");
+    const ScopedEnvironmentVariable waylandSocket("WAYLAND_SOCKET", nullptr);
     UserInterface userInterface(parametersWithExplicitWindowSize());
 
     REQUIRE_THROWS_WITH(userInterface.initialize(), "Failed to initialize GLFW.");
@@ -65,8 +71,11 @@ TEST_CASE("UserInterface::initialize throws when GLFW finds no display", "[user_
 
 TEST_CASE("UserInterface::initialize throws when GLFW cannot create the window", "[user_interface][initialize]")
 {
-    if (!isDisplayAvailable())
-        SKIP("needs a display for GLFW to initialize");
+    // GLFW stays initialized after this check, so initialize() reuses its display
+    // connection. Closing it and reconnecting would let an X server without
+    // -noreset (such as xvfb-run's) drop the second connection while it resets.
+    if (!glfwInit())
+        SKIP("GLFW cannot reach a display");
 
     UserInterfaceParameters parameters = parametersWithExplicitWindowSize();
     parameters.windowParameters.width = 0; // GLFW rejects a window with no width
